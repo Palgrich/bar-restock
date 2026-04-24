@@ -63,7 +63,12 @@ input{font-family:inherit}
 .pub-btn{padding:10px 18px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;border:none;white-space:nowrap}
 .pub-btn:active{opacity:.8}
 
-.cat-hd{padding:8px 16px 5px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);background:var(--bg2);border-bottom:1px solid var(--bd)}
+.cat-hd{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:36px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);background:var(--bg2);border-bottom:1px solid var(--bd);cursor:pointer;user-select:none;position:sticky;top:0;z-index:5}
+.cat-hd:active{background:var(--bg3)}
+.cat-chevron{font-size:10px;color:var(--ink3);transition:transform .2s}
+.cat-chevron.open{transform:rotate(180deg)}
+.cat-badge{font-size:10px;background:var(--ink);color:var(--bg);border-radius:99px;padding:1px 7px;font-weight:600;letter-spacing:0}
+
 .item-row{display:flex;align-items:center;padding:0 16px;min-height:52px;border-bottom:1px solid var(--bd);gap:10px}
 .item-row.in-cart{background:var(--bg2)}
 .item-name{flex:1;font-size:14px;color:var(--ink)}
@@ -82,6 +87,10 @@ input{font-family:inherit}
 .oc-meta{font-size:12px;color:var(--ink2);text-align:right;line-height:1.5}
 .oc-bar{height:4px;background:var(--bg3)}
 .oc-fill{height:100%;background:var(--green-txt);transition:width .3s}
+
+/* category sub-headers inside active order */
+.oi-cat{padding:6px 14px 4px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);background:var(--bg2);border-top:1px solid var(--bd)}
+
 .oi{display:flex;align-items:center;padding:0 14px;min-height:52px;border-top:1px solid var(--bd);gap:8px}
 .oi.s-done .oi-nm,.oi.s-done .oi-qty{text-decoration:line-through;color:var(--ink3)}
 .oi.s-out .oi-nm{text-decoration:line-through;color:var(--red-txt)}
@@ -99,9 +108,15 @@ input{font-family:inherit}
 /* HISTORY */
 .hist-hd{padding:10px 16px 4px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
 .hcard{margin:6px 16px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
-.hc-head{padding:10px 14px;background:var(--bg2);display:flex;justify-content:space-between;align-items:flex-start}
+.hc-head{padding:11px 14px;background:var(--bg2);display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+.hc-head:active{background:var(--bg3)}
+.hc-left{display:flex;flex-direction:column;gap:2px}
 .hc-num{font-size:13px;font-weight:500;color:var(--ink)}
-.hc-meta{font-size:11px;color:var(--ink3);text-align:right;line-height:1.5}
+.hc-meta{font-size:11px;color:var(--ink3)}
+.hc-right{display:flex;align-items:center;gap:8px}
+.hc-chevron{font-size:11px;color:var(--ink3);transition:transform .2s}
+.hc-chevron.open{transform:rotate(180deg)}
+.hc-items{}
 .hci{display:flex;justify-content:space-between;padding:8px 14px;border-top:1px solid var(--bd);font-size:13px;align-items:center}
 .hci-nm{color:var(--ink)}
 .hci-nm.out{color:var(--red-txt);text-decoration:line-through}
@@ -130,11 +145,10 @@ input{font-family:inherit}
 </head>
 <body>
 
-<!-- NAME SCREEN (first launch) -->
 <div id="name-screen" class="hidden">
   <div class="ns-logo">Compass · Bar</div>
   <div class="ns-title">Welcome</div>
-  <div class="ns-sub">Enter your name so your colleagues can see who published each order.</div>
+  <div class="ns-sub">Enter your name so colleagues can see who published each order.</div>
   <div class="ns-card">
     <label>Your name</label>
     <input id="ns-input" type="text" placeholder="e.g. Alex" autocomplete="given-name" maxlength="20">
@@ -142,7 +156,6 @@ input{font-family:inherit}
   </div>
 </div>
 
-<!-- MAIN APP -->
 <div id="app" class="hidden">
   <div class="header">
     <div class="brand">Compass · Bar</div>
@@ -163,7 +176,6 @@ input{font-family:inherit}
   </div>
 </div>
 
-<!-- RENAME SHEET -->
 <div id="rename-overlay" class="overlay hidden">
   <div class="sheet">
     <div class="sheet-title">Your name</div>
@@ -176,10 +188,10 @@ input{font-family:inherit}
 </div>
 
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getDatabase, ref, push, set, onValue, update, get, runTransaction } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getDatabase, ref, push, set, onValue, update, get, runTransaction }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
-// ── FIREBASE CONFIG ──
 const firebaseConfig = {
   apiKey: "AIzaSyBlhkq7t3KlDYwZcXUclF_0AqWYYdnlou8",
   authDomain: "compass-bar-448c0.firebaseapp.com",
@@ -203,20 +215,27 @@ const CATS = [
   {l:'Pastry',        i:['Utensils','Sheets for Pastries','Boxes for Pastries']},
 ];
 const sid  = n => n.toLowerCase().replace(/[^a-z0-9]/g,'_');
-const IMAP = {};
-CATS.forEach(c => c.i.forEach(n => { const id = sid(n); IMAP[id] = {id, name:n}; }));
+const IMAP = {};   // id -> { id, name, cat }
+CATS.forEach(c => c.i.forEach(n => {
+  const id = sid(n);
+  IMAP[id] = { id, name: n, cat: c.l };
+}));
 
-// ── INIT FIREBASE ──
-const fbApp = initializeApp(firebaseConfig);
-const db    = getDatabase(fbApp);
+// ── FIREBASE ──
+const fbApp      = initializeApp(firebaseConfig);
+const db         = getDatabase(fbApp);
 const ordersRef  = ref(db, 'orders');
 const counterRef = ref(db, 'meta/counter');
 
 // ── STATE ──
-let orders  = {};
-let cart    = {};
-let curTab  = 'build';
+let orders   = {};
+let cart     = {};
+let curTab   = 'build';
 let userName = '';
+
+// collapsed sets persist per session
+const collapsedCats   = new Set();   // build: collapsed category labels
+const collapsedOrders = new Set();   // history: collapsed order keys
 
 // ── NAME ──
 function loadName() {
@@ -235,7 +254,7 @@ window.saveName = function() {
 window.openRename  = () => {
   document.getElementById('rename-input').value = userName;
   document.getElementById('rename-overlay').classList.remove('hidden');
-  document.getElementById('rename-input').focus();
+  setTimeout(() => document.getElementById('rename-input').focus(), 50);
 };
 window.closeRename = () => document.getElementById('rename-overlay').classList.add('hidden');
 window.confirmRename = () => {
@@ -246,7 +265,7 @@ window.confirmRename = () => {
 
 // ── BOOT ──
 function boot() {
-  if (loadName()) { startApp(); }
+  if (loadName()) startApp();
   else {
     document.getElementById('name-screen').classList.remove('hidden');
     setTimeout(() => document.getElementById('ns-input').focus(), 100);
@@ -299,6 +318,10 @@ window.chq     = function(id, d) {
   if (!cart[id]) delete cart[id];
   saveCart(); rBuild();
 };
+window.toggleCat = function(label) {
+  collapsedCats.has(label) ? collapsedCats.delete(label) : collapsedCats.add(label);
+  rBuild();
+};
 
 window.publish = async function() {
   const ids = Object.keys(cart).filter(id => cart[id] > 0);
@@ -329,17 +352,32 @@ function rBuild() {
   let h = n > 0
     ? `<div class="cart-bar"><span class="cart-label">${n} item${n>1?'s':''} · ${tot} unit${tot>1?'s':''}</span><button class="pub-btn" onclick="publish()">Publish Order →</button></div>`
     : '';
+
   CATS.forEach(cat => {
-    h += `<div class="cat-hd">${cat.l}</div>`;
-    cat.i.forEach(name => {
-      const id = sid(name), qty = cart[id]||0, sel = qty > 0;
-      h += `<div class="item-row${sel?' in-cart':''}"><span class="item-name">${name}</span>
-        ${sel
-          ? `<div class="qty-row"><button class="qb" onclick="chq('${id}',-1)">−</button><span class="qn">${qty}</span><button class="qb" onclick="chq('${id}',1)">+</button></div>`
-          : `<button class="add-btn" onclick="addItem('${id}')">+</button>`}
-      </div>`;
-    });
+    const collapsed  = collapsedCats.has(cat.l);
+    const cartInCat  = cat.i.filter(name => cart[sid(name)] > 0).length;
+    const safeLabel  = encodeURIComponent(cat.l);
+
+    h += `<div class="cat-hd" onclick="toggleCat('${cat.l.replace(/'/g,"\\'")}')">
+      <span>${cat.l}</span>
+      <span style="display:flex;align-items:center;gap:6px">
+        ${cartInCat > 0 ? `<span class="cat-badge">${cartInCat}</span>` : ''}
+        <span class="cat-chevron${collapsed?'':' open'}">▼</span>
+      </span>
+    </div>`;
+
+    if (!collapsed) {
+      cat.i.forEach(name => {
+        const id = sid(name), qty = cart[id]||0, sel = qty > 0;
+        h += `<div class="item-row${sel?' in-cart':''}"><span class="item-name">${name}</span>
+          ${sel
+            ? `<div class="qty-row"><button class="qb" onclick="chq('${id}',-1)">−</button><span class="qn">${qty}</span><button class="qb" onclick="chq('${id}',1)">+</button></div>`
+            : `<button class="add-btn" onclick="addItem('${id}')">+</button>`}
+        </div>`;
+      });
+    }
   });
+
   document.getElementById('v-build').innerHTML = h;
 }
 
@@ -364,70 +402,113 @@ function rActive() {
     el.innerHTML = '<div class="empty"><strong>No active orders</strong>Build and publish one in the Build tab.</div>';
     return;
   }
+
   let h = '';
   active.forEach(([key, o]) => {
-    const items = Object.entries(o.items||{});
-    const tot   = items.length;
-    const res   = items.filter(([,v]) => v.s!=='pending').length;
-    const pct   = tot ? Math.round(res/tot*100) : 0;
+    const allItems = Object.entries(o.items||{});
+    const tot = allItems.length;
+    const res = allItems.filter(([,v]) => v.s!=='pending').length;
+    const pct = tot ? Math.round(res/tot*100) : 0;
+
+    // Group items by category, preserving CATS order
+    const bycat = {};
+    CATS.forEach(c => { bycat[c.l] = []; });
+    allItems.forEach(([iid, it]) => {
+      const cat = IMAP[iid]?.cat || 'Other';
+      if (!bycat[cat]) bycat[cat] = [];
+      bycat[cat].push([iid, it]);
+    });
+
     h += `<div class="order-card">
       <div class="oc-head">
         <div><div class="oc-title">Order #${o.num}</div><div class="oc-by">by ${o.createdBy} · ${fmt(o.createdAt)}</div></div>
         <div class="oc-meta">${res}/${tot} done<br>${pct}%</div>
       </div>
       <div class="oc-bar"><div class="oc-fill" style="width:${pct}%"></div></div>`;
-    items.forEach(([iid, it]) => {
-      const pd=it.s==='pending', dn=it.s==='done';
-      h += `<div class="oi s-${it.s}">
-        <span class="oi-qty">×${it.qty}</span>
-        <span class="oi-nm">${it.name}</span>
-        ${pd
-          ? `<div class="act-btns"><button class="ab ab-done" onclick="mark('${key}','${iid}','done')">Done</button><button class="ab ab-out" onclick="mark('${key}','${iid}','out')">Out</button></div>`
-          : dn ? `<span class="stamp-done">✓ Done</span>` : `<span class="stamp-out">✗ Out</span>`}
-      </div>`;
+
+    CATS.forEach(cat => {
+      const group = bycat[cat.l];
+      if (!group || !group.length) return;
+      h += `<div class="oi-cat">${cat.l}</div>`;
+      group.forEach(([iid, it]) => {
+        const pd=it.s==='pending', dn=it.s==='done';
+        h += `<div class="oi s-${it.s}">
+          <span class="oi-qty">×${it.qty}</span>
+          <span class="oi-nm">${it.name}</span>
+          ${pd
+            ? `<div class="act-btns"><button class="ab ab-done" onclick="mark('${key}','${iid}','done')">Done</button><button class="ab ab-out" onclick="mark('${key}','${iid}','out')">Out</button></div>`
+            : dn ? `<span class="stamp-done">✓ Done</span>` : `<span class="stamp-out">✗ Out</span>`}
+        </div>`;
+      });
     });
+
     h += `</div>`;
   });
+
   el.innerHTML = h;
 }
 
 // ── HISTORY ──
+window.toggleOrder = function(key) {
+  collapsedOrders.has(key) ? collapsedOrders.delete(key) : collapsedOrders.add(key);
+  rHist();
+};
+
 function rHist() {
   const done = Object.entries(orders)
     .filter(([,o]) => o.status==='complete' && o.date===today())
     .sort(([,a],[,b]) => (b.completedAt||0)-(a.completedAt||0));
   const el = document.getElementById('v-hist');
-  const shareUrl = `${location.origin}${location.pathname}`;
+
   let h = `<div class="share-box">
     <div class="share-title">Invite teammates</div>
-    <div class="share-desc">Anyone who opens the link below sees all orders in real time.</div>
+    <div class="share-desc">Send this link — they open it, enter their name, and see all orders live.</div>
     <button class="copy-btn" onclick="copyInvite()">Copy invite link</button>
   </div>`;
+
   if (!done.length) {
     h += '<div class="empty" style="padding-top:16px"><strong>No completed orders today</strong>Completed orders appear here.</div>';
   } else {
-    h += '<div class="hist-hd">Completed today</div>';
-    done.forEach(([, o]) => {
-      const items  = Object.entries(o.items||{});
-      const outN   = items.filter(([,v]) => v.s==='out').length;
-      h += `<div class="hcard"><div class="hc-head">
-        <div class="hc-num">Order #${o.num} · ${o.createdBy}</div>
-        <div class="hc-meta">${fmt(o.createdAt)} → ${fmt(o.completedAt)}${outN?`<br>${outN} out`:''}</div>
-      </div>`;
-      items.forEach(([,it]) => {
-        h += `<div class="hci"><span class="hci-nm${it.s==='out'?' out':''}">${it.name}</span><span class="hci-r">×${it.qty} ${it.s==='done'?'✓':'✗'}</span></div>`;
-      });
+    h += `<div class="hist-hd">Completed today — ${done.length} order${done.length>1?'s':''}</div>`;
+    done.forEach(([key, o]) => {
+      const items   = Object.entries(o.items||{});
+      const outN    = items.filter(([,v]) => v.s==='out').length;
+      const isOpen  = !collapsedOrders.has(key);
+
+      h += `<div class="hcard">
+        <div class="hc-head" onclick="toggleOrder('${key}')">
+          <div class="hc-left">
+            <div class="hc-num">Order #${o.num} · ${o.createdBy}</div>
+            <div class="hc-meta">${fmt(o.createdAt)} → ${fmt(o.completedAt)}${outN ? ` · ${outN} out` : ''} · ${items.length} items</div>
+          </div>
+          <div class="hc-right">
+            <span class="hc-chevron${isOpen?' open':''}">▼</span>
+          </div>
+        </div>`;
+
+      if (isOpen) {
+        h += `<div class="hc-items">`;
+        items.forEach(([,it]) => {
+          h += `<div class="hci">
+            <span class="hci-nm${it.s==='out'?' out':''}">${it.name}</span>
+            <span class="hci-r">×${it.qty} ${it.s==='done'?'✓':'✗'}</span>
+          </div>`;
+        });
+        h += `</div>`;
+      }
+
       h += `</div>`;
     });
   }
+
   el.innerHTML = h;
 }
 
 window.copyInvite = function() {
   const url = `${location.origin}${location.pathname}`;
   navigator.clipboard?.writeText(url)
-    .then(()  => alert('Link copied!\n\nSend it to your teammates — they just open it and enter their name.'))
-    .catch(()  => prompt('Copy this link:', url));
+    .then(() => alert('Link copied!\n\nSend it to teammates — they open it, enter their name, and see all orders live.'))
+    .catch(() => prompt('Copy this invite link:', url));
 };
 
 boot();
