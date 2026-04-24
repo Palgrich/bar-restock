@@ -10,17 +10,8 @@
 <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
 <title>Bar Restock · Compass</title>
 <style>
-:root{
-  --ink:#111;--ink2:#555;--ink3:#999;
-  --bg:#fff;--bg2:#f6f6f6;--bg3:#ededed;
-  --bd:rgba(0,0,0,.10);--bd2:rgba(0,0,0,.18);
-  --green-bg:#eaf3de;--green-txt:#2d5a0e;--green-bd:#b0d080;
-  --red-bg:#fceaea;--red-txt:#a32d2d;--red-bd:#f0aaaa;
-  --r:12px;--rs:8px;
-}
-@media(prefers-color-scheme:dark){
-  :root{--ink:#f0f0f0;--ink2:#aaa;--ink3:#666;--bg:#141414;--bg2:#1e1e1e;--bg3:#2a2a2a;--bd:rgba(255,255,255,.1);--bd2:rgba(255,255,255,.2);}
-}
+:root{--ink:#111;--ink2:#555;--ink3:#999;--bg:#fff;--bg2:#f6f6f6;--bg3:#ededed;--bd:rgba(0,0,0,.10);--bd2:rgba(0,0,0,.18);--green-bg:#eaf3de;--green-txt:#2d5a0e;--green-bd:#b0d080;--red-bg:#fceaea;--red-txt:#a32d2d;--red-bd:#f0aaaa;--r:12px;--rs:8px;}
+@media(prefers-color-scheme:dark){:root{--ink:#f0f0f0;--ink2:#aaa;--ink3:#666;--bg:#141414;--bg2:#1e1e1e;--bg3:#2a2a2a;--bd:rgba(255,255,255,.1);--bd2:rgba(255,255,255,.2);}}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--bg);color:var(--ink)}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px}
@@ -28,7 +19,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 button{font-family:inherit;cursor:pointer}
 input{font-family:inherit}
 
-/* NAME SCREEN */
 #name-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:20px}
 .ns-logo{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
 .ns-title{font-size:24px;font-weight:600;color:var(--ink);text-align:center}
@@ -40,35 +30,29 @@ input{font-family:inherit}
 .btn-go{width:100%;padding:15px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:15px;font-weight:500;border:none;margin-top:4px}
 .btn-go:active{opacity:.8}
 
-/* APP */
 #app{display:flex;flex-direction:column;height:100vh}
 .header{padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 10px;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--bg)}
 .brand{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:2px}
 .title-row{display:flex;align-items:center;justify-content:space-between}
 .app-title{font-size:20px;font-weight:600;color:var(--ink)}
 .name-tag{font-size:12px;color:var(--ink3);background:var(--bg2);border:1px solid var(--bd);border-radius:99px;padding:4px 10px;cursor:pointer}
-
 .tabs{display:flex;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--bg)}
 .tab{flex:1;padding:11px 4px;text-align:center;font-size:13px;font-weight:500;color:var(--ink2);cursor:pointer;border-bottom:2px solid transparent;position:relative}
 .tab.on{color:var(--ink);border-bottom-color:var(--ink)}
 .tab-bub{position:absolute;top:7px;right:calc(50% - 26px);background:#e24b4a;color:#fff;border-radius:99px;font-size:9px;font-weight:600;padding:1px 5px;min-width:16px;text-align:center;display:none}
-
 .views{flex:1;overflow:hidden;position:relative}
 .view{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;padding-bottom:env(safe-area-inset-bottom,16px)}
 .view.on{display:block}
 
-/* BUILD */
 .cart-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:10}
 .cart-label{flex:1;font-size:13px;color:var(--ink2)}
 .pub-btn{padding:10px 18px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;border:none;white-space:nowrap}
 .pub-btn:active{opacity:.8}
-
-.cat-hd{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:36px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);background:var(--bg2);border-bottom:1px solid var(--bd);cursor:pointer;user-select:none;position:sticky;top:0;z-index:5}
+.cat-hd{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:36px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);background:var(--bg2);border-bottom:1px solid var(--bd);cursor:pointer;user-select:none}
 .cat-hd:active{background:var(--bg3)}
-.cat-chevron{font-size:10px;color:var(--ink3);transition:transform .2s}
+.cat-chevron{font-size:10px;transition:transform .2s}
 .cat-chevron.open{transform:rotate(180deg)}
 .cat-badge{font-size:10px;background:var(--ink);color:var(--bg);border-radius:99px;padding:1px 7px;font-weight:600;letter-spacing:0}
-
 .item-row{display:flex;align-items:center;padding:0 16px;min-height:52px;border-bottom:1px solid var(--bd);gap:10px}
 .item-row.in-cart{background:var(--bg2)}
 .item-name{flex:1;font-size:14px;color:var(--ink)}
@@ -79,7 +63,6 @@ input{font-family:inherit}
 .qb:active{transform:scale(.82)}
 .qn{font-size:15px;font-weight:500;min-width:26px;text-align:center;color:var(--ink)}
 
-/* ACTIVE */
 .order-card{margin:12px 16px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
 .oc-head{padding:12px 14px;background:var(--bg2);display:flex;align-items:center;justify-content:space-between}
 .oc-title{font-size:14px;font-weight:500;color:var(--ink)}
@@ -87,10 +70,7 @@ input{font-family:inherit}
 .oc-meta{font-size:12px;color:var(--ink2);text-align:right;line-height:1.5}
 .oc-bar{height:4px;background:var(--bg3)}
 .oc-fill{height:100%;background:var(--green-txt);transition:width .3s}
-
-/* category sub-headers inside active order */
 .oi-cat{padding:6px 14px 4px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);background:var(--bg2);border-top:1px solid var(--bd)}
-
 .oi{display:flex;align-items:center;padding:0 14px;min-height:52px;border-top:1px solid var(--bd);gap:8px}
 .oi.s-done .oi-nm,.oi.s-done .oi-qty{text-decoration:line-through;color:var(--ink3)}
 .oi.s-out .oi-nm{text-decoration:line-through;color:var(--red-txt)}
@@ -105,7 +85,6 @@ input{font-family:inherit}
 .stamp-done{font-size:12px;font-weight:500;color:var(--green-txt)}
 .stamp-out{font-size:12px;font-weight:500;color:var(--red-txt)}
 
-/* HISTORY */
 .hist-hd{padding:10px 16px 4px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
 .hcard{margin:6px 16px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
 .hc-head{padding:11px 14px;background:var(--bg2);display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
@@ -113,59 +92,202 @@ input{font-family:inherit}
 .hc-left{display:flex;flex-direction:column;gap:2px}
 .hc-num{font-size:13px;font-weight:500;color:var(--ink)}
 .hc-meta{font-size:11px;color:var(--ink3)}
-.hc-right{display:flex;align-items:center;gap:8px}
 .hc-chevron{font-size:11px;color:var(--ink3);transition:transform .2s}
 .hc-chevron.open{transform:rotate(180deg)}
-.hc-items{}
 .hci{display:flex;justify-content:space-between;padding:8px 14px;border-top:1px solid var(--bd);font-size:13px;align-items:center}
 .hci-nm{color:var(--ink)}
 .hci-nm.out{color:var(--red-txt);text-decoration:line-through}
 .hci-r{font-size:12px;color:var(--ink3)}
-  let h = '';
-  if (!done.length) {
-    h += '<div class="empty" style="padding-top:16px"><strong>No completed orders today</strong>Completed orders appear here.</div>';
-  } else {
-    h += `<div class="hist-hd">Completed today — ${done.length} order${done.length>1?'s':''}</div>`;
-    done.forEach(([key, o]) => {
-      const items   = Object.entries(o.items||{});
-      const outN    = items.filter(([,v]) => v.s==='out').length;
-      const isOpen  = !collapsedOrders.has(key);
 
-      h += `<div class="hcard">
-        <div class="hc-head" onclick="toggleOrder('${key}')">
-          <div class="hc-left">
-            <div class="hc-num">Order #${o.num} · ${o.createdBy}</div>
-            <div class="hc-meta">${fmt(o.createdAt)} → ${fmt(o.completedAt)}${outN ? ` · ${outN} out` : ''} · ${items.length} items</div>
-          </div>
-          <div class="hc-right">
-            <span class="hc-chevron${isOpen?' open':''}">▼</span>
-          </div>
-        </div>`;
+.empty{text-align:center;padding:52px 20px;color:var(--ink3);font-size:14px;line-height:1.8}
+.empty strong{display:block;font-size:17px;margin-bottom:6px;color:var(--ink2)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:50}
+.sheet{background:var(--bg);border-radius:var(--r) var(--r) 0 0;padding:20px;width:100%;display:flex;flex-direction:column;gap:14px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet-title{font-size:16px;font-weight:600;color:var(--ink)}
+.sheet input{width:100%;padding:12px 14px;border-radius:var(--rs);border:1.5px solid var(--bd2);background:var(--bg2);color:var(--ink);font-size:16px;outline:none}
+.sheet input:focus{border-color:var(--ink)}
+.sheet-btns{display:flex;gap:8px}
+.sheet-btns button{flex:1;padding:13px;border-radius:var(--rs);font-size:14px;font-weight:500;border:1px solid var(--bd2)}
+.btn-cancel{background:var(--bg2);color:var(--ink2)}
+.btn-ok{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+</style>
+</head>
+<body>
 
-      if (isOpen) {
-        h += `<div class="hc-items">`;
-        items.forEach(([,it]) => {
-          h += `<div class="hci">
-            <span class="hci-nm${it.s==='out'?' out':''}">${it.name}</span>
-            <span class="hci-r">×${it.qty} ${it.s==='done'?'✓':'✗'}</span>
-          </div>`;
-        });
-        h += `</div>`;
-      }
+<div id="name-screen" class="hidden">
+  <div class="ns-logo">Compass · Bar</div>
+  <div class="ns-title">Welcome</div>
+  <div class="ns-sub">Enter your name so colleagues can see who published each order.</div>
+  <div class="ns-card">
+    <label>Your name</label>
+    <input id="ns-input" type="text" placeholder="e.g. Alex" autocomplete="given-name" maxlength="20">
+    <button class="btn-go" onclick="saveName()">Get started</button>
+  </div>
+</div>
 
-      h += `</div>`;
-    });
-  }
+<div id="app" class="hidden">
+  <div class="header">
+    <div class="brand">Compass · Bar</div>
+    <div class="title-row">
+      <div class="app-title">Restock</div>
+      <div class="name-tag" id="name-tag" onclick="openRename()"></div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab on" id="t-build" onclick="sw('build')">Build</div>
+    <div class="tab" id="t-active" onclick="sw('active')">Active<span class="tab-bub" id="bub-a"></span></div>
+    <div class="tab" id="t-hist" onclick="sw('hist')">History</div>
+  </div>
+  <div class="views">
+    <div class="view on" id="v-build"></div>
+    <div class="view" id="v-active"></div>
+    <div class="view" id="v-hist"></div>
+  </div>
+</div>
 
-  el.innerHTML = h;
+<div id="rename-overlay" class="overlay hidden">
+  <div class="sheet">
+    <div class="sheet-title">Your name</div>
+    <input id="rename-input" type="text" maxlength="20">
+    <div class="sheet-btns">
+      <button class="btn-cancel" onclick="closeRename()">Cancel</button>
+      <button class="btn-ok" onclick="confirmRename()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getDatabase, ref, push, set, onValue, update, get, runTransaction } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBlhkq7t3KlDYwZcXUclF_0AqWYYdnlou8",
+  authDomain: "compass-bar-448c0.firebaseapp.com",
+  databaseURL: "https://compass-bar-448c0-default-rtdb.firebaseio.com",
+  projectId: "compass-bar-448c0",
+  storageBucket: "compass-bar-448c0.firebasestorage.app",
+  messagingSenderId: "281477138732",
+  appId: "1:281477138732:web:c2c0fffd5bd060f47ec489"
+};
+
+const CATS = [
+  {l:'Milk & Dairy',  i:['Milk Regular','Non Fat Milk','Oat Milk','Alm Milk','Soy Milk','Chai','Half and Half']},
+  {l:'Coffee',        i:['Coffee Beans','Decaf Beans','Cold Brew','Matcha']},
+  {l:'Tea',           i:['Tea Bergamot','Tea Breakfast','Tea Red Nectar','Tea Masala','Tea Jasmin','Tea White']},
+  {l:'Cups — Hot',    i:['Cups 16oz Hot','Cups 12oz Hot','Cups 8oz Hot','Cups 4oz Hot']},
+  {l:'Cups — Cold',   i:['Cups 16oz Cold','Cups 12oz Cold']},
+  {l:'Lids & Sleeves',i:['Lids 16-12 Hot','Lids 8 Hot','Lids 16 Cold','Lids 12 Cold','Sleeves for Cups']},
+  {l:'Syrups',        i:['Vanilla','SF Vanilla','Simple','Toffee','Hazelnut','SF Hazelnut','Pine','Pineapple','Strawberry','Pumpkin Pie','Pumpkin Spice','Peppermint','Pistachio','Lavender','Caramel','White Coco','Dark Coco']},
+  {l:'Supplies',      i:['Honey','Straws','Cinnamon']},
+  {l:'Pastry',        i:['Utensils','Sheets for Pastries','Boxes for Pastries']},
+];
+const sid = n => n.toLowerCase().replace(/[^a-z0-9]/g,'_');
+const IMAP = {};
+CATS.forEach(c => c.i.forEach(n => { const id=sid(n); IMAP[id]={id,name:n,cat:c.l}; }));
+
+const fbApp     = initializeApp(firebaseConfig);
+const db        = getDatabase(fbApp);
+const ordersRef = ref(db,'orders');
+const counterRef= ref(db,'meta/counter');
+
+let orders={}, cart={}, curTab='build', userName='';
+const collapsedCats   = new Set();
+const collapsedOrders = new Set();
+
+function loadName(){ const n=localStorage.getItem('rso_name'); if(n){userName=n;return true;} return false; }
+window.saveName = function(){ const v=document.getElementById('ns-input').value.trim(); if(!v)return; userName=v; localStorage.setItem('rso_name',v); document.getElementById('name-screen').classList.add('hidden'); startApp(); };
+window.openRename = ()=>{ document.getElementById('rename-input').value=userName; document.getElementById('rename-overlay').classList.remove('hidden'); setTimeout(()=>document.getElementById('rename-input').focus(),50); };
+window.closeRename = ()=>document.getElementById('rename-overlay').classList.add('hidden');
+window.confirmRename = ()=>{ const v=document.getElementById('rename-input').value.trim(); if(v){userName=v;localStorage.setItem('rso_name',v);document.getElementById('name-tag').textContent=v;} closeRename(); };
+
+function boot(){ if(loadName()) startApp(); else { document.getElementById('name-screen').classList.remove('hidden'); setTimeout(()=>document.getElementById('ns-input').focus(),100); } }
+
+function startApp(){
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('name-tag').textContent=userName;
+  const sc=localStorage.getItem('rso_cart'); if(sc){try{cart=JSON.parse(sc);}catch{}}
+  onValue(ordersRef, snap=>{ orders=snap.val()||{}; if(curTab==='active')rActive(); if(curTab==='hist')rHist(); rBubs(); });
+  sw('build');
 }
 
-window.copyInvite = function() {
-  const url = `${location.origin}${location.pathname}`;
-  navigator.clipboard?.writeText(url)
-    .then(() => alert('Link copied!\n\nSend it to teammates — they open it, enter their name, and see all orders live.'))
-    .catch(() => prompt('Copy this invite link:', url));
+function saveCart(){ localStorage.setItem('rso_cart',JSON.stringify(cart)); }
+function fmt(ts){ return ts?new Date(ts).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}):''; }
+function today(){ return new Date().toDateString(); }
+
+window.sw = function(t){
+  curTab=t;
+  ['build','active','hist'].forEach(n=>{ document.getElementById('t-'+n).className='tab'+(n===t?' on':''); document.getElementById('v-'+n).className='view'+(n===t?' on':''); });
+  if(t==='build') rBuild(); if(t==='active') rActive(); if(t==='hist') rHist();
 };
+
+function rBubs(){ const n=Object.values(orders).filter(o=>o.status==='active'&&o.date===today()).length; const b=document.getElementById('bub-a'); if(!b)return; b.style.display=n?'':'none'; b.textContent=n; }
+
+window.addItem = id=>{ cart[id]=1; saveCart(); rBuild(); };
+window.chq = (id,d)=>{ cart[id]=Math.max(0,(cart[id]||0)+d); if(!cart[id])delete cart[id]; saveCart(); rBuild(); };
+window.toggleCat = label=>{ collapsedCats.has(label)?collapsedCats.delete(label):collapsedCats.add(label); rBuild(); };
+
+window.publish = async function(){
+  const ids=Object.keys(cart).filter(id=>cart[id]>0); if(!ids.length)return;
+  let num=1;
+  try{ await runTransaction(counterRef,cur=>{ if(!cur||cur.date!==today())return{date:today(),num:1}; return{date:cur.date,num:cur.num+1}; }); const snap=await get(counterRef); num=snap.val()?.num||1; }catch{}
+  const items={}; ids.forEach(id=>{ items[id]={name:IMAP[id].name,qty:cart[id],s:'pending'}; });
+  await set(push(ordersRef),{num,createdAt:Date.now(),createdBy:userName,date:today(),status:'active',completedAt:null,items});
+  cart={}; saveCart(); sw('active');
+};
+
+function rBuild(){
+  const n=Object.keys(cart).filter(id=>cart[id]>0).length;
+  const tot=Object.values(cart).reduce((a,b)=>a+b,0);
+  let h=n>0?`<div class="cart-bar"><span class="cart-label">${n} item${n>1?'s':''} · ${tot} unit${tot>1?'s':''}</span><button class="pub-btn" onclick="publish()">Publish Order →</button></div>`:'';
+  CATS.forEach(cat=>{
+    const collapsed=collapsedCats.has(cat.l);
+    const inCat=cat.i.filter(name=>cart[sid(name)]>0).length;
+    h+=`<div class="cat-hd" onclick="toggleCat('${cat.l.replace(/'/g,"\\'")}')"><span>${cat.l}</span><span style="display:flex;align-items:center;gap:6px">${inCat>0?`<span class="cat-badge">${inCat}</span>`:''}<span class="cat-chevron${collapsed?'':' open'}">▼</span></span></div>`;
+    if(!collapsed) cat.i.forEach(name=>{ const id=sid(name),qty=cart[id]||0,sel=qty>0; h+=`<div class="item-row${sel?' in-cart':''}"><span class="item-name">${name}</span>${sel?`<div class="qty-row"><button class="qb" onclick="chq('${id}',-1)">−</button><span class="qn">${qty}</span><button class="qb" onclick="chq('${id}',1)">+</button></div>`:`<button class="add-btn" onclick="addItem('${id}')">+</button>`}</div>`; });
+  });
+  document.getElementById('v-build').innerHTML=h;
+}
+
+window.mark = async function(key,iid,s){
+  const o=orders[key]; if(!o)return;
+  const newS=o.items[iid]?.s===s?'pending':s;
+  const upd={}; upd[`orders/${key}/items/${iid}/s`]=newS;
+  const allDone=Object.entries(o.items).every(([k,v])=>k===iid?newS!=='pending':v.s!=='pending');
+  upd[`orders/${key}/status`]=allDone?'complete':'active'; upd[`orders/${key}/completedAt`]=allDone?Date.now():null;
+  await update(ref(db),upd);
+};
+
+function rActive(){
+  const active=Object.entries(orders).filter(([,o])=>o.status==='active'&&o.date===today()).sort(([,a],[,b])=>a.createdAt-b.createdAt);
+  const el=document.getElementById('v-active');
+  if(!active.length){el.innerHTML='<div class="empty"><strong>No active orders</strong>Build and publish one in the Build tab.</div>';return;}
+  let h='';
+  active.forEach(([key,o])=>{
+    const allItems=Object.entries(o.items||{});
+    const tot=allItems.length, res=allItems.filter(([,v])=>v.s!=='pending').length, pct=tot?Math.round(res/tot*100):0;
+    const bycat={}; CATS.forEach(c=>{bycat[c.l]=[];}); allItems.forEach(([iid,it])=>{ const cat=IMAP[iid]?.cat||'Other'; if(!bycat[cat])bycat[cat]=[]; bycat[cat].push([iid,it]); });
+    h+=`<div class="order-card"><div class="oc-head"><div><div class="oc-title">Order #${o.num}</div><div class="oc-by">by ${o.createdBy} · ${fmt(o.createdAt)}</div></div><div class="oc-meta">${res}/${tot} done<br>${pct}%</div></div><div class="oc-bar"><div class="oc-fill" style="width:${pct}%"></div></div>`;
+    CATS.forEach(cat=>{ const grp=bycat[cat.l]; if(!grp||!grp.length)return; h+=`<div class="oi-cat">${cat.l}</div>`; grp.forEach(([iid,it])=>{ const pd=it.s==='pending',dn=it.s==='done'; h+=`<div class="oi s-${it.s}"><span class="oi-qty">×${it.qty}</span><span class="oi-nm">${it.name}</span>${pd?`<div class="act-btns"><button class="ab ab-done" onclick="mark('${key}','${iid}','done')">Done</button><button class="ab ab-out" onclick="mark('${key}','${iid}','out')">Out</button></div>`:dn?`<span class="stamp-done">✓ Done</span>`:`<span class="stamp-out">✗ Out</span>`}</div>`; }); });
+    h+=`</div>`;
+  });
+  el.innerHTML=h;
+}
+
+window.toggleOrder = key=>{ collapsedOrders.has(key)?collapsedOrders.delete(key):collapsedOrders.add(key); rHist(); };
+
+function rHist(){
+  const done=Object.entries(orders).filter(([,o])=>o.status==='complete'&&o.date===today()).sort(([,a],[,b])=>(b.completedAt||0)-(a.completedAt||0));
+  const el=document.getElementById('v-hist');
+  if(!done.length){el.innerHTML='<div class="empty"><strong>No completed orders today</strong>Completed orders appear here.</div>';return;}
+  let h=`<div class="hist-hd">Completed today — ${done.length} order${done.length>1?'s':''}</div>`;
+  done.forEach(([key,o])=>{
+    const items=Object.entries(o.items||{}), outN=items.filter(([,v])=>v.s==='out').length, isOpen=!collapsedOrders.has(key);
+    h+=`<div class="hcard"><div class="hc-head" onclick="toggleOrder('${key}')"><div class="hc-left"><div class="hc-num">Order #${o.num} · ${o.createdBy}</div><div class="hc-meta">${fmt(o.createdAt)} → ${fmt(o.completedAt)}${outN?` · ${outN} out`:''} · ${items.length} items</div></div><span class="hc-chevron${isOpen?' open':''}">▼</span></div>`;
+    if(isOpen){ h+=`<div>`; items.forEach(([,it])=>{ h+=`<div class="hci"><span class="hci-nm${it.s==='out'?' out':''}">${it.name}</span><span class="hci-r">×${it.qty} ${it.s==='done'?'✓':'✗'}</span></div>`; }); h+=`</div>`; }
+    h+=`</div>`;
+  });
+  el.innerHTML=h;
+}
 
 boot();
 </script>
