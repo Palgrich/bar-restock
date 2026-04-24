@@ -16,86 +16,72 @@
   --bd:rgba(0,0,0,.10);--bd2:rgba(0,0,0,.18);
   --green-bg:#eaf3de;--green-txt:#2d5a0e;--green-bd:#b0d080;
   --red-bg:#fceaea;--red-txt:#a32d2d;--red-bd:#f0aaaa;
-  --amber:#b87215;
   --r:12px;--rs:8px;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bot: env(safe-area-inset-bottom, 0px);
 }
 @media(prefers-color-scheme:dark){
   :root{--ink:#f0f0f0;--ink2:#aaa;--ink3:#666;--bg:#141414;--bg2:#1e1e1e;--bg3:#2a2a2a;--bd:rgba(255,255,255,.1);--bd2:rgba(255,255,255,.2);}
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--bg);color:var(--ink)}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px}
 .hidden{display:none!important}
 button{font-family:inherit;cursor:pointer}
-input{font-family:inherit;font-size:15px}
+input{font-family:inherit}
 
-/* ── SETUP SCREEN ── */
-#setup{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:20px;background:var(--bg)}
-.setup-logo{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);margin-bottom:4px}
-.setup-h{font-size:22px;font-weight:600;color:var(--ink);text-align:center;line-height:1.3}
-.setup-sub{font-size:14px;color:var(--ink2);text-align:center;line-height:1.6;max-width:320px}
-.setup-card{width:100%;max-width:360px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:14px}
-.setup-card label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);display:block;margin-bottom:4px}
-.setup-card input,.setup-card textarea{width:100%;padding:10px 12px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg);color:var(--ink);font-size:14px}
-.setup-card textarea{height:120px;resize:vertical;font-family:monospace;font-size:12px}
-.btn-primary{width:100%;padding:14px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:15px;font-weight:500;border:none;letter-spacing:.02em}
-.btn-primary:active{opacity:.8}
-.setup-steps{width:100%;max-width:360px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px 20px;display:flex;flex-direction:column;gap:10px}
-.step{display:flex;gap:10px;align-items:flex-start}
-.step-num{width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.step-txt{font-size:13px;color:var(--ink2);line-height:1.5}
-.step-txt a{color:var(--amber);text-decoration:none}
-.setup-err{font-size:13px;color:var(--red-txt);background:var(--red-bg);padding:10px 14px;border-radius:var(--rs);border:1px solid var(--red-bd);text-align:center}
-.skip-btn{font-size:13px;color:var(--ink3);background:none;border:none;padding:4px;text-decoration:underline}
+/* NAME SCREEN */
+#name-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:20px}
+.ns-logo{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.ns-title{font-size:24px;font-weight:600;color:var(--ink);text-align:center}
+.ns-sub{font-size:14px;color:var(--ink2);text-align:center;line-height:1.6}
+.ns-card{width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px}
+.ns-card label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.ns-card input{width:100%;padding:14px 16px;border-radius:var(--rs);border:1.5px solid var(--bd2);background:var(--bg2);color:var(--ink);font-size:17px;outline:none}
+.ns-card input:focus{border-color:var(--ink)}
+.btn-go{width:100%;padding:15px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:15px;font-weight:500;border:none;margin-top:4px}
+.btn-go:active{opacity:.8}
 
-/* ── MAIN APP ── */
+/* APP */
 #app{display:flex;flex-direction:column;height:100vh}
-.header{padding:calc(var(--safe-top) + 12px) 16px 10px;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--bg)}
+.header{padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 10px;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--bg)}
 .brand{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:2px}
 .title-row{display:flex;align-items:center;justify-content:space-between}
 .app-title{font-size:20px;font-weight:600;color:var(--ink)}
-.settings-btn{font-size:12px;color:var(--ink3);background:none;border:1px solid var(--bd);border-radius:99px;padding:4px 10px}
+.name-tag{font-size:12px;color:var(--ink3);background:var(--bg2);border:1px solid var(--bd);border-radius:99px;padding:4px 10px;cursor:pointer}
 
 .tabs{display:flex;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--bg)}
-.tab{flex:1;padding:11px 4px;text-align:center;font-size:13px;font-weight:500;color:var(--ink2);cursor:pointer;border-bottom:2px solid transparent;position:relative;transition:color .1s}
+.tab{flex:1;padding:11px 4px;text-align:center;font-size:13px;font-weight:500;color:var(--ink2);cursor:pointer;border-bottom:2px solid transparent;position:relative}
 .tab.on{color:var(--ink);border-bottom-color:var(--ink)}
 .tab-bub{position:absolute;top:7px;right:calc(50% - 26px);background:#e24b4a;color:#fff;border-radius:99px;font-size:9px;font-weight:600;padding:1px 5px;min-width:16px;text-align:center;display:none}
 
 .views{flex:1;overflow:hidden;position:relative}
-.view{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none}
+.view{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;padding-bottom:env(safe-area-inset-bottom,16px)}
 .view.on{display:block}
-.view-pad{padding-bottom:env(safe-area-inset-bottom, 16px)}
 
-/* ── BUILD ── */
+/* BUILD */
 .cart-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:10}
 .cart-label{flex:1;font-size:13px;color:var(--ink2)}
 .pub-btn{padding:10px 18px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;border:none;white-space:nowrap}
 .pub-btn:active{opacity:.8}
-.pub-btn:disabled{opacity:.3;cursor:default}
 
-.cat-hd{padding:8px 16px 5px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);background:var(--bg2);border-bottom:1px solid var(--bd);position:sticky;top:0}
-/* when cart-bar is shown, offset cat-hd */
-
-.item-row{display:flex;align-items:center;padding:0 16px;min-height:52px;border-bottom:1px solid var(--bd);gap:10px;transition:background .1s}
+.cat-hd{padding:8px 16px 5px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);background:var(--bg2);border-bottom:1px solid var(--bd)}
+.item-row{display:flex;align-items:center;padding:0 16px;min-height:52px;border-bottom:1px solid var(--bd);gap:10px}
 .item-row.in-cart{background:var(--bg2)}
-.item-name{flex:1;font-size:14px;color:var(--ink);line-height:1.3}
+.item-name{flex:1;font-size:14px;color:var(--ink)}
 .add-btn{width:32px;height:32px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:20px;font-weight:300;display:flex;align-items:center;justify-content:center;border:none;flex-shrink:0;line-height:1}
-.add-btn:active{transform:scale(.85)}
+.add-btn:active{transform:scale(.82)}
 .qty-row{display:flex;align-items:center;gap:4px}
 .qb{width:32px;height:32px;border-radius:50%;background:var(--bg3);color:var(--ink);font-size:18px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bd2);flex-shrink:0;line-height:1}
-.qb:active{transform:scale(.85)}
+.qb:active{transform:scale(.82)}
 .qn{font-size:15px;font-weight:500;min-width:26px;text-align:center;color:var(--ink)}
 
-/* ── ACTIVE ── */
+/* ACTIVE */
 .order-card{margin:12px 16px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
 .oc-head{padding:12px 14px;background:var(--bg2);display:flex;align-items:center;justify-content:space-between}
 .oc-title{font-size:14px;font-weight:500;color:var(--ink)}
-.oc-by{font-size:11px;color:var(--ink3)}
-.oc-meta{font-size:12px;color:var(--ink2);text-align:right;line-height:1.4}
+.oc-by{font-size:11px;color:var(--ink3);margin-top:1px}
+.oc-meta{font-size:12px;color:var(--ink2);text-align:right;line-height:1.5}
 .oc-bar{height:4px;background:var(--bg3)}
-.oc-fill{height:100%;background:var(--green-txt);transition:width .4s}
+.oc-fill{height:100%;background:var(--green-txt);transition:width .3s}
 .oi{display:flex;align-items:center;padding:0 14px;min-height:52px;border-top:1px solid var(--bd);gap:8px}
 .oi.s-done .oi-nm,.oi.s-done .oi-qty{text-decoration:line-through;color:var(--ink3)}
 .oi.s-out .oi-nm{text-decoration:line-through;color:var(--red-txt)}
@@ -110,193 +96,168 @@ input{font-family:inherit;font-size:15px}
 .stamp-done{font-size:12px;font-weight:500;color:var(--green-txt)}
 .stamp-out{font-size:12px;font-weight:500;color:var(--red-txt)}
 
-.complete-banner{margin:12px 16px;padding:12px 16px;background:var(--green-bg);border:1px solid var(--green-bd);border-radius:var(--r);font-size:13px;color:var(--green-txt);text-align:center;font-weight:500}
-
-/* ── HISTORY ── */
+/* HISTORY */
 .hist-hd{padding:10px 16px 4px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
 .hcard{margin:6px 16px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
-.hc-head{padding:10px 14px;background:var(--bg2);display:flex;justify-content:space-between;align-items:center}
+.hc-head{padding:10px 14px;background:var(--bg2);display:flex;justify-content:space-between;align-items:flex-start}
 .hc-num{font-size:13px;font-weight:500;color:var(--ink)}
 .hc-meta{font-size:11px;color:var(--ink3);text-align:right;line-height:1.5}
 .hci{display:flex;justify-content:space-between;padding:8px 14px;border-top:1px solid var(--bd);font-size:13px;align-items:center}
 .hci-nm{color:var(--ink)}
 .hci-nm.out{color:var(--red-txt);text-decoration:line-through}
 .hci-r{font-size:12px;color:var(--ink3)}
-.share-section{padding:16px;display:flex;flex-direction:column;gap:10px}
-.share-box{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--ink2);font-family:monospace;word-break:break-all;line-height:1.5}
-.copy-btn{padding:10px 16px;border-radius:var(--rs);background:var(--bg2);color:var(--ink);font-size:13px;font-weight:500;border:1px solid var(--bd2)}
-.copy-btn:active{opacity:.7}
 
-.empty{text-align:center;padding:48px 20px;color:var(--ink3);font-size:14px;line-height:1.8}
-.empty strong{display:block;font-size:18px;margin-bottom:8px;color:var(--ink2)}
+.share-box{margin:16px;padding:14px 16px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);display:flex;flex-direction:column;gap:10px}
+.share-title{font-size:13px;font-weight:500;color:var(--ink)}
+.share-desc{font-size:12px;color:var(--ink2);line-height:1.5}
+.copy-btn{padding:11px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;border:none;text-align:center}
+.copy-btn:active{opacity:.8}
 
-/* ── MODALS ── */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:100;padding:0 0 env(safe-area-inset-bottom,0)}
-.modal{background:var(--bg);border-radius:var(--r) var(--r) 0 0;padding:20px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px}
-.modal-title{font-size:16px;font-weight:600;color:var(--ink)}
-.modal input{width:100%;padding:10px 12px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg2);color:var(--ink);font-size:14px}
-.modal-btns{display:flex;gap:8px}
-.modal-btns button{flex:1;padding:13px;border-radius:var(--rs);font-size:14px;font-weight:500;border:1px solid var(--bd2)}
+.empty{text-align:center;padding:52px 20px;color:var(--ink3);font-size:14px;line-height:1.8}
+.empty strong{display:block;font-size:17px;margin-bottom:6px;color:var(--ink2)}
+
+/* rename overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:50}
+.sheet{background:var(--bg);border-radius:var(--r) var(--r) 0 0;padding:20px;width:100%;display:flex;flex-direction:column;gap:14px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet-title{font-size:16px;font-weight:600;color:var(--ink)}
+.sheet input{width:100%;padding:12px 14px;border-radius:var(--rs);border:1.5px solid var(--bd2);background:var(--bg2);color:var(--ink);font-size:16px;outline:none}
+.sheet input:focus{border-color:var(--ink)}
+.sheet-btns{display:flex;gap:8px}
+.sheet-btns button{flex:1;padding:13px;border-radius:var(--rs);font-size:14px;font-weight:500;border:1px solid var(--bd2)}
 .btn-cancel{background:var(--bg2);color:var(--ink2)}
-.btn-confirm{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn-ok{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 </style>
 </head>
 <body>
 
-<!-- ── SETUP SCREEN ── -->
-<div id="setup">
-  <div class="setup-logo">Compass · Bar</div>
-  <div class="setup-h">Bar Restock Setup</div>
-  <div class="setup-sub">Connect to Firebase for real-time sync across all devices on your team.</div>
-
-  <div class="setup-steps">
-    <div class="step"><div class="step-num">1</div><div class="step-txt">Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> and create a new project (disable Analytics for speed)</div></div>
-    <div class="step"><div class="step-num">2</div><div class="step-txt">In your project: Build → Realtime Database → Create database → Start in <strong>test mode</strong></div></div>
-    <div class="step"><div class="step-num">3</div><div class="step-txt">Project Settings (gear icon) → Your apps → Web app (&lt;/&gt;) → Register app → copy the <code>firebaseConfig</code> object</div></div>
-  </div>
-
-  <div class="setup-card">
-    <div>
-      <label>Your name (shown on orders)</label>
-      <input id="setup-name" type="text" placeholder="e.g. Alex" autocomplete="given-name">
-    </div>
-    <div>
-      <label>Paste Firebase config JSON</label>
-      <textarea id="setup-cfg" placeholder='{
-  "apiKey": "...",
-  "authDomain": "...",
-  "databaseURL": "...",
-  "projectId": "..."
-}'></textarea>
-    </div>
-    <div id="setup-err" class="setup-err hidden">Check your config — something looks off.</div>
-    <button class="btn-primary" onclick="doSetup()">Connect & Launch</button>
+<!-- NAME SCREEN (first launch) -->
+<div id="name-screen" class="hidden">
+  <div class="ns-logo">Compass · Bar</div>
+  <div class="ns-title">Welcome</div>
+  <div class="ns-sub">Enter your name so your colleagues can see who published each order.</div>
+  <div class="ns-card">
+    <label>Your name</label>
+    <input id="ns-input" type="text" placeholder="e.g. Alex" autocomplete="given-name" maxlength="20">
+    <button class="btn-go" onclick="saveName()">Get started</button>
   </div>
 </div>
 
-<!-- ── MAIN APP ── -->
+<!-- MAIN APP -->
 <div id="app" class="hidden">
   <div class="header">
     <div class="brand">Compass · Bar</div>
     <div class="title-row">
-      <div class="app-title">Restock Orders</div>
-      <button class="settings-btn" onclick="showShare()">Share link</button>
+      <div class="app-title">Restock</div>
+      <div class="name-tag" id="name-tag" onclick="openRename()"></div>
     </div>
   </div>
-
   <div class="tabs">
     <div class="tab on" id="t-build" onclick="sw('build')">Build</div>
     <div class="tab" id="t-active" onclick="sw('active')">Active<span class="tab-bub" id="bub-a"></span></div>
     <div class="tab" id="t-hist" onclick="sw('hist')">History</div>
   </div>
-
   <div class="views">
-    <div class="view on view-pad" id="v-build"></div>
-    <div class="view view-pad" id="v-active"></div>
-    <div class="view view-pad" id="v-hist"></div>
+    <div class="view on" id="v-build"></div>
+    <div class="view" id="v-active"></div>
+    <div class="view" id="v-hist"></div>
   </div>
 </div>
 
-<!-- name modal -->
-<div id="name-modal" class="overlay hidden">
-  <div class="modal">
-    <div class="modal-title">Set your name</div>
-    <input id="nm-input" type="text" placeholder="Your name on orders" maxlength="20">
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeNameModal()">Cancel</button>
-      <button class="btn-confirm" onclick="saveName()">Save</button>
+<!-- RENAME SHEET -->
+<div id="rename-overlay" class="overlay hidden">
+  <div class="sheet">
+    <div class="sheet-title">Your name</div>
+    <input id="rename-input" type="text" maxlength="20">
+    <div class="sheet-btns">
+      <button class="btn-cancel" onclick="closeRename()">Cancel</button>
+      <button class="btn-ok" onclick="confirmRename()">Save</button>
     </div>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getDatabase, ref, push, set, onValue, update, get, serverTimestamp, runTransaction } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+import { getDatabase, ref, push, set, onValue, update, get, runTransaction } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+// ── FIREBASE CONFIG ──
+const firebaseConfig = {
+  apiKey: "AIzaSyBlhkq7t3KlDYwZcXUclF_0AqWYYdnlou8",
+  authDomain: "compass-bar-448c0.firebaseapp.com",
+  databaseURL: "https://compass-bar-448c0-default-rtdb.firebaseio.com",
+  projectId: "compass-bar-448c0",
+  storageBucket: "compass-bar-448c0.firebasestorage.app",
+  messagingSenderId: "281477138732",
+  appId: "1:281477138732:web:c2c0fffd5bd060f47ec489"
+};
 
 // ── ITEM DATA ──
 const CATS = [
-  {l:'Milk & Dairy', i:['Milk Regular','Non Fat Milk','Oat Milk','Alm Milk','Soy Milk','Chai','Half and Half']},
-  {l:'Coffee',       i:['Coffee Beans','Decaf Beans','Cold Brew','Matcha']},
-  {l:'Tea',          i:['Tea Bergamot','Tea Breakfast','Tea Red Nectar','Tea Masala','Tea Jasmin','Tea White']},
-  {l:'Cups — Hot',   i:['Cups 16oz Hot','Cups 12oz Hot','Cups 8oz Hot','Cups 4oz Hot']},
-  {l:'Cups — Cold',  i:['Cups 16oz Cold','Cups 12oz Cold']},
+  {l:'Milk & Dairy',  i:['Milk Regular','Non Fat Milk','Oat Milk','Alm Milk','Soy Milk','Chai','Half and Half']},
+  {l:'Coffee',        i:['Coffee Beans','Decaf Beans','Cold Brew','Matcha']},
+  {l:'Tea',           i:['Tea Bergamot','Tea Breakfast','Tea Red Nectar','Tea Masala','Tea Jasmin','Tea White']},
+  {l:'Cups — Hot',    i:['Cups 16oz Hot','Cups 12oz Hot','Cups 8oz Hot','Cups 4oz Hot']},
+  {l:'Cups — Cold',   i:['Cups 16oz Cold','Cups 12oz Cold']},
   {l:'Lids & Sleeves',i:['Lids 16-12 Hot','Lids 8 Hot','Lids 16 Cold','Lids 12 Cold','Sleeves for Cups']},
-  {l:'Syrups',       i:['Vanilla','SF Vanilla','Simple','Toffee','Hazelnut','SF Hazelnut','Pine','Pineapple','Strawberry','Pumpkin Pie','Pumpkin Spice','Peppermint','Pistachio','Lavender','Caramel','White Coco','Dark Coco']},
-  {l:'Supplies',     i:['Honey','Straws','Cinnamon']},
-  {l:'Pastry',       i:['Utensils','Sheets for Pastries','Boxes for Pastries']},
+  {l:'Syrups',        i:['Vanilla','SF Vanilla','Simple','Toffee','Hazelnut','SF Hazelnut','Pine','Pineapple','Strawberry','Pumpkin Pie','Pumpkin Spice','Peppermint','Pistachio','Lavender','Caramel','White Coco','Dark Coco']},
+  {l:'Supplies',      i:['Honey','Straws','Cinnamon']},
+  {l:'Pastry',        i:['Utensils','Sheets for Pastries','Boxes for Pastries']},
 ];
-const sid = n => n.toLowerCase().replace(/[^a-z0-9]/g,'_');
+const sid  = n => n.toLowerCase().replace(/[^a-z0-9]/g,'_');
 const IMAP = {};
-CATS.forEach(c => c.i.forEach(name => { const id = sid(name); IMAP[id] = {id, name}; }));
+CATS.forEach(c => c.i.forEach(n => { const id = sid(n); IMAP[id] = {id, name:n}; }));
 
-// ── CONFIG ──
-function loadConfig() {
-  const hash = location.hash.slice(1);
-  if (hash) {
-    try {
-      const cfg = JSON.parse(atob(hash));
-      if (cfg.apiKey && cfg.databaseURL) {
-        localStorage.setItem('rso_cfg', JSON.stringify(cfg));
-        history.replaceState(null, '', location.pathname);
-        return cfg;
-      }
-    } catch {}
-  }
-  const s = localStorage.getItem('rso_cfg');
-  if (s) { try { return JSON.parse(s); } catch {} }
-  return null;
-}
-
-function shareUrl(cfg) {
-  return `${location.origin}${location.pathname}#${btoa(JSON.stringify(cfg))}`;
-}
+// ── INIT FIREBASE ──
+const fbApp = initializeApp(firebaseConfig);
+const db    = getDatabase(fbApp);
+const ordersRef  = ref(db, 'orders');
+const counterRef = ref(db, 'meta/counter');
 
 // ── STATE ──
-let db, ordersRef, counterRef;
-let orders = {};     // live from Firebase
-let cart = {};       // local
-let userName = localStorage.getItem('rso_name') || '';
-let curTab = 'build';
+let orders  = {};
+let cart    = {};
+let curTab  = 'build';
+let userName = '';
 
-// ── SETUP ──
-window.doSetup = function() {
-  const name = document.getElementById('setup-name').value.trim();
-  const raw  = document.getElementById('setup-cfg').value.trim();
-  const err  = document.getElementById('setup-err');
-  err.classList.add('hidden');
-  if (!name) { err.textContent = 'Enter your name.'; err.classList.remove('hidden'); return; }
-  let cfg;
-  try {
-    const match = raw.match(/\{[\s\S]*\}/);
-    cfg = JSON.parse(match ? match[0] : raw);
-  } catch {
-    err.textContent = 'Could not parse the config JSON. Copy it exactly from Firebase.';
-    err.classList.remove('hidden');
-    return;
-  }
-  if (!cfg.apiKey || !cfg.databaseURL) {
-    err.textContent = 'Config missing apiKey or databaseURL. Make sure you\'ve created the Realtime Database.';
-    err.classList.remove('hidden');
-    return;
-  }
-  localStorage.setItem('rso_cfg', JSON.stringify(cfg));
-  localStorage.setItem('rso_name', name);
-  userName = name;
-  initApp(cfg);
+// ── NAME ──
+function loadName() {
+  const n = localStorage.getItem('rso_name');
+  if (n) { userName = n; return true; }
+  return false;
+}
+window.saveName = function() {
+  const v = document.getElementById('ns-input').value.trim();
+  if (!v) return;
+  userName = v;
+  localStorage.setItem('rso_name', v);
+  document.getElementById('name-screen').classList.add('hidden');
+  startApp();
+};
+window.openRename  = () => {
+  document.getElementById('rename-input').value = userName;
+  document.getElementById('rename-overlay').classList.remove('hidden');
+  document.getElementById('rename-input').focus();
+};
+window.closeRename = () => document.getElementById('rename-overlay').classList.add('hidden');
+window.confirmRename = () => {
+  const v = document.getElementById('rename-input').value.trim();
+  if (v) { userName = v; localStorage.setItem('rso_name', v); document.getElementById('name-tag').textContent = v; }
+  closeRename();
 };
 
-// ── INIT ──
-function initApp(cfg) {
-  document.getElementById('setup').classList.add('hidden');
+// ── BOOT ──
+function boot() {
+  if (loadName()) { startApp(); }
+  else {
+    document.getElementById('name-screen').classList.remove('hidden');
+    setTimeout(() => document.getElementById('ns-input').focus(), 100);
+  }
+}
+
+function startApp() {
   document.getElementById('app').classList.remove('hidden');
-  const app = initializeApp(cfg);
-  db = getDatabase(app);
-  ordersRef = ref(db, 'orders');
-  counterRef = ref(db, 'meta/counter');
-  // Load saved cart
+  document.getElementById('name-tag').textContent = userName;
   const sc = localStorage.getItem('rso_cart');
   if (sc) { try { cart = JSON.parse(sc); } catch {} }
-  // Listen for orders in real-time
   onValue(ordersRef, snap => {
     orders = snap.val() || {};
     if (curTab === 'active') rActive();
@@ -308,18 +269,15 @@ function initApp(cfg) {
 
 // ── UTILS ──
 function saveCart() { localStorage.setItem('rso_cart', JSON.stringify(cart)); }
-function fmt(ts) {
-  if (!ts) return '';
-  return new Date(ts).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
-}
-function todayStr() { return new Date().toDateString(); }
+function fmt(ts)    { return ts ? new Date(ts).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}) : ''; }
+function today()    { return new Date().toDateString(); }
 
 // ── TABS ──
 window.sw = function(t) {
   curTab = t;
   ['build','active','hist'].forEach(n => {
-    document.getElementById('t-'+n).className = 'tab' + (n===t ? ' on' : '');
-    document.getElementById('v-'+n).className  = 'view view-pad' + (n===t ? ' on' : '');
+    document.getElementById('t-'+n).className = 'tab'+(n===t?' on':'');
+    document.getElementById('v-'+n).className  = 'view'+(n===t?' on':'');
   });
   if (t==='build')  rBuild();
   if (t==='active') rActive();
@@ -327,16 +285,16 @@ window.sw = function(t) {
 };
 
 function rBubs() {
-  const n = Object.values(orders).filter(o => o.status === 'active' && o.date === todayStr()).length;
+  const n = Object.values(orders).filter(o => o.status==='active' && o.date===today()).length;
   const b = document.getElementById('bub-a');
   if (!b) return;
   b.style.display = n ? '' : 'none';
-  b.textContent = n;
+  b.textContent   = n;
 }
 
 // ── BUILD ──
 window.addItem = function(id) { cart[id] = 1; saveCart(); rBuild(); };
-window.chq = function(id, d) {
+window.chq     = function(id, d) {
   cart[id] = Math.max(0, (cart[id]||0) + d);
   if (!cart[id]) delete cart[id];
   saveCart(); rBuild();
@@ -345,11 +303,10 @@ window.chq = function(id, d) {
 window.publish = async function() {
   const ids = Object.keys(cart).filter(id => cart[id] > 0);
   if (!ids.length) return;
-  // Get order number
   let num = 1;
   try {
     await runTransaction(counterRef, cur => {
-      if (!cur || cur.date !== todayStr()) return { date: todayStr(), num: 1 };
+      if (!cur || cur.date !== today()) return { date: today(), num: 1 };
       return { date: cur.date, num: cur.num + 1 };
     });
     const snap = await get(counterRef);
@@ -357,44 +314,28 @@ window.publish = async function() {
   } catch {}
   const items = {};
   ids.forEach(id => { items[id] = { name: IMAP[id].name, qty: cart[id], s: 'pending' }; });
-  const order = {
-    num,
-    createdAt: Date.now(),
-    createdBy: userName || 'Bar',
-    date: todayStr(),
-    status: 'active',
-    completedAt: null,
-    items
-  };
-  const newRef = push(ordersRef);
-  await set(newRef, order);
+  await set(push(ordersRef), {
+    num, createdAt: Date.now(), createdBy: userName,
+    date: today(), status: 'active', completedAt: null, items
+  });
   cart = {};
   saveCart();
   sw('active');
 };
 
 function rBuild() {
-  const n    = Object.keys(cart).filter(id => cart[id] > 0).length;
-  const tot  = Object.values(cart).reduce((a,b) => a+b, 0);
-  let h = '';
-  if (n > 0) {
-    h += `<div class="cart-bar">
-      <span class="cart-label">${n} item${n>1?'s':''} · ${tot} unit${tot>1?'s':''}</span>
-      <button class="pub-btn" onclick="publish()">Publish Order →</button>
-    </div>`;
-  }
+  const n   = Object.keys(cart).filter(id => cart[id] > 0).length;
+  const tot = Object.values(cart).reduce((a,b) => a+b, 0);
+  let h = n > 0
+    ? `<div class="cart-bar"><span class="cart-label">${n} item${n>1?'s':''} · ${tot} unit${tot>1?'s':''}</span><button class="pub-btn" onclick="publish()">Publish Order →</button></div>`
+    : '';
   CATS.forEach(cat => {
     h += `<div class="cat-hd">${cat.l}</div>`;
     cat.i.forEach(name => {
-      const id  = sid(name), qty = cart[id]||0, sel = qty > 0;
-      h += `<div class="item-row${sel?' in-cart':''}">
-        <span class="item-name">${name}</span>
+      const id = sid(name), qty = cart[id]||0, sel = qty > 0;
+      h += `<div class="item-row${sel?' in-cart':''}"><span class="item-name">${name}</span>
         ${sel
-          ? `<div class="qty-row">
-               <button class="qb" onclick="chq('${id}',-1)">−</button>
-               <span class="qn">${qty}</span>
-               <button class="qb" onclick="chq('${id}',1)">+</button>
-             </div>`
+          ? `<div class="qty-row"><button class="qb" onclick="chq('${id}',-1)">−</button><span class="qn">${qty}</span><button class="qb" onclick="chq('${id}',1)">+</button></div>`
           : `<button class="add-btn" onclick="addItem('${id}')">+</button>`}
       </div>`;
     });
@@ -404,28 +345,19 @@ function rBuild() {
 
 // ── ACTIVE ──
 window.mark = async function(key, iid, s) {
-  const o = orders[key];
-  if (!o) return;
-  const cur = o.items[iid]?.s || 'pending';
-  const newS = cur === s ? 'pending' : s;
-  const updates = {};
-  updates[`orders/${key}/items/${iid}/s`] = newS;
-  // Check if all resolved after this change
-  const allDone = Object.entries(o.items).every(([k,v]) => k === iid ? newS !== 'pending' : v.s !== 'pending');
-  if (allDone) {
-    updates[`orders/${key}/status`] = 'complete';
-    updates[`orders/${key}/completedAt`] = Date.now();
-  } else {
-    updates[`orders/${key}/status`] = 'active';
-    updates[`orders/${key}/completedAt`] = null;
-  }
-  await update(ref(db), updates);
+  const o = orders[key]; if (!o) return;
+  const newS = (o.items[iid]?.s === s) ? 'pending' : s;
+  const upd  = {};
+  upd[`orders/${key}/items/${iid}/s`] = newS;
+  const allDone = Object.entries(o.items).every(([k,v]) => k===iid ? newS!=='pending' : v.s!=='pending');
+  upd[`orders/${key}/status`]      = allDone ? 'complete' : 'active';
+  upd[`orders/${key}/completedAt`] = allDone ? Date.now() : null;
+  await update(ref(db), upd);
 };
 
 function rActive() {
-  const today = todayStr();
   const active = Object.entries(orders)
-    .filter(([,o]) => o.status === 'active' && o.date === today)
+    .filter(([,o]) => o.status==='active' && o.date===today())
     .sort(([,a],[,b]) => a.createdAt - b.createdAt);
   const el = document.getElementById('v-active');
   if (!active.length) {
@@ -435,26 +367,23 @@ function rActive() {
   let h = '';
   active.forEach(([key, o]) => {
     const items = Object.entries(o.items||{});
-    const tot = items.length;
-    const res = items.filter(([,v]) => v.s !== 'pending').length;
-    const pct = tot ? Math.round(res/tot*100) : 0;
+    const tot   = items.length;
+    const res   = items.filter(([,v]) => v.s!=='pending').length;
+    const pct   = tot ? Math.round(res/tot*100) : 0;
     h += `<div class="order-card">
       <div class="oc-head">
         <div><div class="oc-title">Order #${o.num}</div><div class="oc-by">by ${o.createdBy} · ${fmt(o.createdAt)}</div></div>
-        <div class="oc-meta">${res}/${tot}<br>${pct}%</div>
+        <div class="oc-meta">${res}/${tot} done<br>${pct}%</div>
       </div>
       <div class="oc-bar"><div class="oc-fill" style="width:${pct}%"></div></div>`;
     items.forEach(([iid, it]) => {
-      const pd = it.s==='pending', dn = it.s==='done', ou = it.s==='out';
+      const pd=it.s==='pending', dn=it.s==='done';
       h += `<div class="oi s-${it.s}">
         <span class="oi-qty">×${it.qty}</span>
         <span class="oi-nm">${it.name}</span>
-        ${pd ? `<div class="act-btns">
-                  <button class="ab ab-done" onclick="mark('${key}','${iid}','done')">Done</button>
-                  <button class="ab ab-out" onclick="mark('${key}','${iid}','out')">Out</button>
-                </div>`
-             : dn ? `<span class="stamp-done">✓ Done</span>`
-                  : `<span class="stamp-out">✗ Out</span>`}
+        ${pd
+          ? `<div class="act-btns"><button class="ab ab-done" onclick="mark('${key}','${iid}','done')">Done</button><button class="ab ab-out" onclick="mark('${key}','${iid}','out')">Out</button></div>`
+          : dn ? `<span class="stamp-done">✓ Done</span>` : `<span class="stamp-out">✗ Out</span>`}
       </div>`;
     });
     h += `</div>`;
@@ -464,36 +393,29 @@ function rActive() {
 
 // ── HISTORY ──
 function rHist() {
-  const today = todayStr();
   const done = Object.entries(orders)
-    .filter(([,o]) => o.status === 'complete' && o.date === today)
-    .sort(([,a],[,b]) => (b.completedAt||0) - (a.completedAt||0));
+    .filter(([,o]) => o.status==='complete' && o.date===today())
+    .sort(([,a],[,b]) => (b.completedAt||0)-(a.completedAt||0));
   const el = document.getElementById('v-hist');
-  const cfg = JSON.parse(localStorage.getItem('rso_cfg')||'{}');
-  const url = shareUrl(cfg);
-  let h = `<div class="share-section">
-    <div style="font-size:13px;font-weight:500;color:var(--ink)">Share with your team</div>
-    <div class="share-box" id="share-url">${url}</div>
-    <button class="copy-btn" onclick="copyLink('${encodeURIComponent(url)}')">Copy invite link</button>
-    <div style="font-size:12px;color:var(--ink3);line-height:1.5">Anyone who opens this link is instantly connected to your shared orders in real time.</div>
+  const shareUrl = `${location.origin}${location.pathname}`;
+  let h = `<div class="share-box">
+    <div class="share-title">Invite teammates</div>
+    <div class="share-desc">Anyone who opens the link below sees all orders in real time.</div>
+    <button class="copy-btn" onclick="copyInvite()">Copy invite link</button>
   </div>`;
   if (!done.length) {
-    h += '<div class="empty" style="padding-top:20px"><strong>No completed orders today</strong>Completed orders will appear here.</div>';
+    h += '<div class="empty" style="padding-top:16px"><strong>No completed orders today</strong>Completed orders appear here.</div>';
   } else {
     h += '<div class="hist-hd">Completed today</div>';
-    done.forEach(([key, o]) => {
-      const items = Object.entries(o.items||{});
-      const outN = items.filter(([,v]) => v.s==='out').length;
-      h += `<div class="hcard">
-        <div class="hc-head">
-          <div class="hc-num">Order #${o.num} · by ${o.createdBy}</div>
-          <div class="hc-meta">created ${fmt(o.createdAt)}<br>done ${fmt(o.completedAt)}${outN ? ` · ${outN} out` : ''}</div>
-        </div>`;
+    done.forEach(([, o]) => {
+      const items  = Object.entries(o.items||{});
+      const outN   = items.filter(([,v]) => v.s==='out').length;
+      h += `<div class="hcard"><div class="hc-head">
+        <div class="hc-num">Order #${o.num} · ${o.createdBy}</div>
+        <div class="hc-meta">${fmt(o.createdAt)} → ${fmt(o.completedAt)}${outN?`<br>${outN} out`:''}</div>
+      </div>`;
       items.forEach(([,it]) => {
-        h += `<div class="hci">
-          <span class="hci-nm${it.s==='out'?' out':''}">${it.name}</span>
-          <span class="hci-r">×${it.qty} ${it.s==='done'?'✓':'✗'}</span>
-        </div>`;
+        h += `<div class="hci"><span class="hci-nm${it.s==='out'?' out':''}">${it.name}</span><span class="hci-r">×${it.qty} ${it.s==='done'?'✓':'✗'}</span></div>`;
       });
       h += `</div>`;
     });
@@ -501,40 +423,14 @@ function rHist() {
   el.innerHTML = h;
 }
 
-window.copyLink = function(enc) {
-  const url = decodeURIComponent(enc);
-  navigator.clipboard?.writeText(url).then(() => alert('Link copied! Send it to your teammates.')).catch(() => prompt('Copy this link:', url));
+window.copyInvite = function() {
+  const url = `${location.origin}${location.pathname}`;
+  navigator.clipboard?.writeText(url)
+    .then(()  => alert('Link copied!\n\nSend it to your teammates — they just open it and enter their name.'))
+    .catch(()  => prompt('Copy this link:', url));
 };
 
-// ── SHARE MODAL ──
-window.showShare = function() {
-  const cfg = JSON.parse(localStorage.getItem('rso_cfg')||'{}');
-  const url = shareUrl(cfg);
-  navigator.clipboard?.writeText(url).then(() => alert('Invite link copied!\n\nSend it to your teammates — they open it once and they\'re connected.')).catch(() => prompt('Copy this invite link:', url));
-};
-
-// ── NAME MODAL (unused, kept for future) ──
-window.closeNameModal = () => document.getElementById('name-modal').classList.add('hidden');
-window.saveName = function() {
-  const v = document.getElementById('nm-input').value.trim();
-  if (v) { userName = v; localStorage.setItem('rso_name', v); }
-  closeNameModal();
-};
-
-// ── BOOT ──
-const cfg = loadConfig();
-if (cfg) {
-  // Check for stored name
-  const storedName = localStorage.getItem('rso_name');
-  if (storedName) { userName = storedName; initApp(cfg); }
-  else {
-    // Show setup but prefill config
-    document.getElementById('setup-cfg').value = JSON.stringify(cfg, null, 2);
-    document.getElementById('setup').querySelector('.setup-h').textContent = 'Set your name';
-    document.getElementById('setup').querySelectorAll('.setup-steps, .setup-sub')[0].remove();
-    document.getElementById('setup').querySelectorAll('.setup-steps, .setup-sub')[0]?.remove();
-  }
-}
+boot();
 </script>
 </body>
 </html>
