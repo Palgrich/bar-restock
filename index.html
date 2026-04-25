@@ -210,8 +210,9 @@ let orders   = {};
 let cart     = {};
 let curTab   = 'build';
 let userName = '';
-const collapsedCats   = new Set();
-const collapsedOrders = new Set();
+// We track EXPANDED items — default state is collapsed
+const expandedCats   = new Set();
+const expandedOrders = new Set();
 
 // ── NAME ──
 function loadName() {
@@ -306,7 +307,7 @@ window.chq = function (id, d) {
   rBuild();
 };
 window.toggleCat = function (label) {
-  collapsedCats.has(label) ? collapsedCats.delete(label) : collapsedCats.add(label);
+  expandedCats.has(label) ? expandedCats.delete(label) : expandedCats.add(label);
   rBuild();
 };
 window.publish = async function () {
@@ -339,7 +340,7 @@ function rBuild() {
     ? `<div class="cart-bar"><span class="cart-label">${n} item${n > 1 ? 's' : ''} · ${tot} unit${tot > 1 ? 's' : ''}</span><button class="pub-btn" onclick="publish()">Publish Order →</button></div>`
     : '';
   CATS.forEach(cat => {
-    const collapsed = collapsedCats.has(cat.l);
+    const collapsed = !expandedCats.has(cat.l);
     const inCat     = cat.i.filter(name => cart[sid(name)] > 0).length;
     const safeL     = cat.l.replace(/'/g, "\\'");
     h += `<div class="cat-hd" onclick="toggleCat('${safeL}')">
@@ -459,7 +460,7 @@ function rActive() {
 
 // ── HISTORY ──
 window.toggleOrder = function (key) {
-  collapsedOrders.has(key) ? collapsedOrders.delete(key) : collapsedOrders.add(key);
+  expandedOrders.has(key) ? expandedOrders.delete(key) : expandedOrders.add(key);
   rHist();
 };
 
@@ -492,7 +493,7 @@ function rHist() {
       const cancelled = o.status === 'cancelled';
       const items     = Object.entries(o.items || {});
       const outN      = items.filter(([, v]) => v.s === 'out').length;
-      const isOpen    = !collapsedOrders.has(key);
+      const isOpen    = expandedOrders.has(key);
       const meta      = cancelled
         ? `${fmt(o.createdAt)} · cancelled ${fmt(o.completedAt)} · ${items.length} items`
         : `${fmt(o.createdAt)} → ${fmt(o.completedAt)}${outN ? ` · ${outN} out` : ''} · ${items.length} items`;
