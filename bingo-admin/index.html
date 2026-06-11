@@ -48,6 +48,7 @@ input,select{font-family:inherit}
 .preset-btn:active{background:var(--bg3)}
 .run-btn{padding:8px 14px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;border:none;white-space:nowrap}
 .export-btn{padding:8px 14px;border-radius:var(--rs);background:var(--green-bg);color:var(--green-txt);font-size:13px;font-weight:500;border:1px solid var(--green-txt);white-space:nowrap}
+.export-btn.print{background:var(--bg2);color:var(--ink2);border-color:var(--bd2)}
 .btn-row{display:flex;gap:8px}
 
 .report-day{padding:10px 16px 4px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
@@ -303,7 +304,8 @@ function rReport(){
     </div>
     <div class="btn-row">
       <button class="run-btn" onclick="runReport()">Apply</button>
-      <button class="export-btn" onclick="exportExcel()">↓ Export Excel</button>
+      <button class="export-btn" onclick="exportExcel()">↓ CSV</button>
+      <button class="export-btn print" onclick="exportPrint()">🖨 PDF</button>
     </div>
   </div>`;
 
@@ -430,6 +432,110 @@ window.saveOrderEdit=async function(){
 };
 
 // ── EXPORT EXCEL ──
+window.exportPrint=function(){
+  const filtered=getFiltered();
+  if(!filtered.length){alert('No data to export.');return;}
+
+  const fromVal=document.getElementById('r-from')?.value||'';
+  const toVal=document.getElementById('r-to')?.value||'';
+  const periodLabel=fromVal&&toVal?`${fromVal} – ${toVal}`:fromVal?`From ${fromVal}`:toVal?`To ${toVal}`:'All dates';
+
+  const glTotals={};
+  let rows='';
+
+  filtered.forEach(([,o])=>{
+    const isTr=o.isTransfer;
+    const fromUnit=isTr?'Coffee Bar':'Coffee Bar';
+    const toUnit=isTr?'Tea Bar':'Coffee Bar';
+    const dateStr=new Date(o.createdAt).toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'2-digit'});
+    const items=Object.values(o.items||{});
+    const cancelled=o.status==='cancelled';
+    items.forEach((it,idx)=>{
+      const price=(it.qtyType==='box'?it.boxPrice:it.unitPrice)||0;
+      const lt=it.s==='out'?0:lineTotal(it,it.qty,it.qtyType);
+      const unitLabel=it.qtyType==='box'?it.boxLabel||'box':it.unitLabel||'each';
+      const style=it.s==='out'?'text-decoration:line-through;color:#a32d2d;':'';
+      rows+=`<tr${cancelled?' class="cancelled"':''}>
+        <td>${idx===0?dateStr:''}</td>
+        <td>${idx===0?fromUnit:''}</td>
+        <td>${idx===0?toUnit:''}</td>
+        <td style="${style}">${it.name}</td>
+        <td style="text-align:center">${it.qty}</td>
+        <td style="text-align:center">${unitLabel}</td>
+        <td>${idx===0?o.createdBy:''}</td>
+        <td style="text-align:right">${price>0?'$'+price.toFixed(2):''}</td>
+        <td style="text-align:right">${it.s==='out'?'Out':lt>0?'$'+lt.toFixed(2):''}</td>
+        <td style="text-align:center">${it.glCode||''}</td>
+        <td></td>
+      </tr>`;
+      if(!cancelled&&it.s!=='out'&&lt>0){
+        const k=it.glCode||'—';
+        if(!glTotals[k])glTotals[k]={name:it.glCat||'',total:0};
+        glTotals[k].total+=lt;
+      }
+    });
+    rows+=`<tr class="sep"><td colspan="11"></td></tr>`;
+  });
+
+  const grand=Object.values(glTotals).reduce((s,v)=>s+v.total,0);
+  let summaryRows=Object.entries(glTotals).sort(([a],[b])=>a.localeCompare(b))
+    .map(([code,v])=>`<tr><td><strong>${code}</strong></td><td colspan="7">${v.name}</td><td style="text-align:right"><strong>$${v.total.toFixed(2)}</strong></td><td colspan="2"></td></tr>`).join('');
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>Transfers – ${periodLabel}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,sans-serif;font-size:11px;color:#000;padding:20px}
+  h1{text-align:center;font-size:20px;font-weight:700;background:#4472c4;color:#fff;padding:12px;letter-spacing:.08em;margin-bottom:4px}
+  .period{text-align:center;font-size:11px;color:#555;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;border:1.5px solid #000}
+  th{background:#4472c4;color:#fff;font-size:10px;font-weight:700;padding:6px 5px;border:1px solid #2d5aa0;text-align:left}
+  td{padding:5px 5px;border:1px solid #ccc;vertical-align:top}
+  tr.sep td{height:6px;background:#f0f4ff;border:none}
+  tr.cancelled td{color:#999}
+  .summary-hd{margin-top:24px;background:#4472c4;color:#fff;font-size:12px;font-weight:700;padding:7px 10px;letter-spacing:.05em}
+  .summary-table{width:100%;border-collapse:collapse;border:1.5px solid #000;margin-top:0}
+  .summary-table th{background:#d9e2f3;color:#000;font-size:10px;padding:5px 6px;border:1px solid #aaa}
+  .summary-table td{padding:5px 6px;border:1px solid #ccc}
+  .grand td{font-weight:700;background:#e9f0fb;font-size:12px}
+  @media print{body{padding:0} @page{margin:15mm}}
+  .print-btn{display:block;margin:0 auto 16px;padding:10px 32px;background:#4472c4;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer}
+  @media print{.print-btn{display:none}}
+</style></head><body>
+<button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
+<h1>TRANSFERS</h1>
+<div class="period">Period: ${periodLabel} &nbsp;|&nbsp; Generated: ${new Date().toLocaleString('en-US')}</div>
+<table>
+  <thead><tr>
+    <th style="width:7%">Date</th>
+    <th style="width:9%">From Unit</th>
+    <th style="width:8%">To Unit</th>
+    <th style="width:22%">Product</th>
+    <th style="width:6%;text-align:center">Amount</th>
+    <th style="width:6%;text-align:center">Unit</th>
+    <th style="width:9%">Employee</th>
+    <th style="width:8%;text-align:right">Unit Price</th>
+    <th style="width:8%;text-align:right">Total</th>
+    <th style="width:7%;text-align:center">GL Code</th>
+    <th style="width:10%">P.I.C Sign OFF</th>
+  </tr></thead>
+  <tbody>${rows}</tbody>
+</table>
+<div class="summary-hd">GL CODE SUMMARY</div>
+<table class="summary-table">
+  <thead><tr><th>GL Code</th><th>GL Category</th><th colspan="7"></th><th style="text-align:right">Total</th><th colspan="2"></th></tr></thead>
+  <tbody>
+    ${summaryRows}
+    <tr class="grand"><td></td><td>GRAND TOTAL</td><td colspan="7"></td><td style="text-align:right">$${grand.toFixed(2)}</td><td colspan="2"></td></tr>
+  </tbody>
+</table>
+</body></html>`;
+
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+};
+
 window.exportExcel=function(){
   const filtered=getFiltered();
   if(!filtered.length){alert('No data to export.');return;}
