@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bingo Restock">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
+<title>Bingo Restock</title>
+<style>
+:root{--ink:#111;--ink2:#555;--ink3:#999;--bg:#fff;--bg2:#f6f6f6;--bg3:#ededed;--bd:rgba(0,0,0,.10);--bd2:rgba(0,0,0,.18);--green-bg:#eaf3de;--green-txt:#2d5a0e;--green-bd:#b0d080;--red-bg:#fceaea;--red-txt:#a32d2d;--red-bd:#f0aaaa;--amber:#b87215;--amber-bg:#fef3e2;--amber-bd:#f5c87a;--r:12px;--rs:8px;}
+@media(prefers-color-scheme:dark){:root{--ink:#f0f0f0;--ink2:#aaa;--ink3:#666;--bg:#141414;--bg2:#1e1e1e;--bg3:#2a2a2a;--bd:rgba(255,255,255,.1);--bd2:rgba(255,255,255,.2);}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--ink)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px}
+.hidden{display:none!important}
+button{font-family:inherit;cursor:pointer}
+input{font-family:inherit}
+
+/* SCREENS */
+.screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:20px;background:var(--bg)}
+.sc-logo{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.sc-title{font-size:24px;font-weight:600;color:var(--ink);text-align:center}
+.sc-sub{font-size:14px;color:var(--ink2);text-align:center;line-height:1.6;max-width:300px}
+.sc-card{width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px}
+.sc-card label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.sc-card input{width:100%;padding:14px 16px;border-radius:var(--rs);border:1.5px solid var(--bd2);background:var(--bg2);color:var(--ink);font-size:17px;outline:none}
+.sc-card input:focus{border-color:var(--ink)}
+.btn-go{width:100%;padding:15px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:15px;font-weight:500;border:none;margin-top:4px}
+.btn-go:active{opacity:.8}
+.station-btns{width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px}
+.station-btn{width:100%;padding:18px 20px;border-radius:var(--r);border:1.5px solid var(--bd2);background:var(--bg2);color:var(--ink);font-size:16px;font-weight:500;text-align:left;display:flex;align-items:center;gap:12px}
+.station-btn:active{background:var(--bg3)}
+.station-btn .st-icon{font-size:24px}
+.station-btn .st-info{display:flex;flex-direction:column;gap:2px}
+.station-btn .st-name{font-size:16px;font-weight:600;color:var(--ink)}
+.station-btn .st-desc{font-size:12px;color:var(--ink3)}
+.station-btn.transfer-btn{border-color:var(--amber-bd);background:var(--amber-bg)}
+
+/* APP */
+#app{display:flex;flex-direction:column;height:100vh}
+.header{padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 10px;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--bg)}
+.brand{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:2px}
+.title-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.app-title{font-size:20px;font-weight:600;color:var(--ink);flex:1}
+.station-pill{font-size:11px;font-weight:600;border-radius:99px;padding:4px 10px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.station-pill.coffee{background:var(--bg2);color:var(--ink2);border:1px solid var(--bd2)}
+.station-pill.tea{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd)}
+.name-tag{font-size:12px;color:var(--ink3);background:var(--bg2);border:1px solid var(--bd);border-radius:99px;padding:4px 10px;cursor:pointer;flex-shrink:0}
+
+.tabs{display:flex;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--bg)}
+.tab{flex:1;padding:11px 4px;text-align:center;font-size:13px;font-weight:500;color:var(--ink2);cursor:pointer;border-bottom:2px solid transparent;position:relative}
+.tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+.tab-bub{position:absolute;top:7px;right:calc(50% - 26px);background:#e24b4a;color:#fff;border-radius:99px;font-size:9px;font-weight:600;padding:1px 5px;min-width:16px;text-align:center;display:none}
+.views{flex:1;overflow:hidden;position:relative}
+.view{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;padding-bottom:env(safe-area-inset-bottom,16px)}
+.view.on{display:block}
+
+/* BUILD */
+.cart-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:10}
+.cart-label{flex:1;font-size:13px;color:var(--ink2)}
+.cart-total{font-size:13px;font-weight:600;color:var(--ink)}
+.pub-btn{padding:10px 18px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;border:none;white-space:nowrap}
+.pub-btn:active{opacity:.8}
+.pub-btn.transfer{background:var(--amber);color:#fff}
+
+.cat-hd{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:36px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);background:var(--bg2);border-bottom:1px solid var(--bd);cursor:pointer;user-select:none}
+.cat-hd:active{background:var(--bg3)}
+.cat-chevron{font-size:10px;transition:transform .2s}
+.cat-chevron.open{transform:rotate(180deg)}
+.cat-badge{font-size:10px;background:var(--ink);color:var(--bg);border-radius:99px;padding:1px 7px;font-weight:600;letter-spacing:0}
+
+.item-row{display:flex;align-items:center;padding:8px 16px;min-height:56px;border-bottom:1px solid var(--bd);gap:10px}
+.item-row.in-cart{background:var(--bg2)}
+.item-info{flex:1;min-width:0}
+.item-name{font-size:14px;color:var(--ink);line-height:1.2}
+.item-price{font-size:11px;color:var(--ink3);margin-top:2px}
+.add-btn{width:32px;height:32px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:20px;font-weight:300;display:flex;align-items:center;justify-content:center;border:none;flex-shrink:0;line-height:1}
+.add-btn:active{transform:scale(.82)}
+
+.cart-ctrl{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.qty-row{display:flex;align-items:center;gap:4px}
+.qb{width:30px;height:30px;border-radius:50%;background:var(--bg3);color:var(--ink);font-size:17px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bd2);flex-shrink:0;line-height:1}
+.qb:active{transform:scale(.82)}
+.qn{font-size:15px;font-weight:500;min-width:24px;text-align:center;color:var(--ink)}
+.type-toggle{display:flex;border:1px solid var(--bd2);border-radius:99px;overflow:hidden;font-size:11px;font-weight:500}
+.type-toggle button{padding:4px 10px;background:transparent;border:none;color:var(--ink3)}
+.type-toggle button.on{background:var(--ink);color:var(--bg)}
+
+/* ACTIVE */
+.order-card{margin:12px 16px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.order-card.transfer-card{border-color:var(--amber-bd)}
+.oc-head{padding:12px 14px;background:var(--bg2);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.transfer-card .oc-head{background:var(--amber-bg)}
+.oc-info{flex:1}
+.oc-title{font-size:14px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:8px}
+.transfer-badge{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:99px;padding:2px 7px}
+.oc-by{font-size:11px;color:var(--ink3);margin-top:2px}
+.oc-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.oc-meta{font-size:12px;color:var(--ink2);text-align:right}
+.cancel-btn{padding:5px 10px;border-radius:var(--rs);font-size:11px;font-weight:500;border:1px solid var(--bd2);background:transparent;color:var(--ink3)}
+.cancel-btn:active{background:var(--bg3)}
+.oc-bar{height:4px;background:var(--bg3)}
+.oc-fill{height:100%;background:var(--green-txt);transition:width .3s}
+.oi-cat{padding:6px 14px 4px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);background:var(--bg2);border-top:1px solid var(--bd)}
+.oi{display:flex;align-items:center;padding:0 14px;min-height:52px;border-top:1px solid var(--bd);gap:8px}
+.oi.s-done .oi-nm,.oi.s-done .oi-qty{text-decoration:line-through;color:var(--ink3)}
+.oi.s-out .oi-nm{text-decoration:line-through;color:var(--red-txt)}
+.oi.s-out .oi-qty{color:var(--ink3)}
+.oi-qty{font-size:12px;color:var(--ink3);min-width:48px}
+.oi-nm{flex:1;font-size:13px;color:var(--ink)}
+.act-btns{display:flex;gap:6px;flex-shrink:0}
+.ab{padding:6px 10px;border-radius:var(--rs);font-size:12px;font-weight:500;border:1px solid;white-space:nowrap}
+.ab:active{transform:scale(.9)}
+.ab-done{background:var(--green-bg);color:var(--green-txt);border-color:var(--green-bd)}
+.ab-out{background:var(--red-bg);color:var(--red-txt);border-color:var(--red-bd)}
+.ab-undo{background:var(--bg2);color:var(--ink3);border-color:var(--bd2)}
+.stamp-done{font-size:12px;font-weight:500;color:var(--green-txt)}
+.stamp-out{font-size:12px;font-weight:500;color:var(--red-txt)}
+
+/* HISTORY */
+.hist-day{padding:10px 16px 4px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
+.hcard{margin:6px 16px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.hcard.cancelled{opacity:.6}
+.hcard.transfer-hcard{border-color:var(--amber-bd)}
+.hc-head{padding:11px 14px;background:var(--bg2);display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+.transfer-hcard .hc-head{background:var(--amber-bg)}
+.hc-head:active{filter:brightness(.97)}
+.hc-left{display:flex;flex-direction:column;gap:2px}
+.hc-num{font-size:13px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hc-meta{font-size:11px;color:var(--ink3)}
+.hc-chevron{font-size:11px;color:var(--ink3);transition:transform .2s;flex-shrink:0}
+.hc-chevron.open{transform:rotate(180deg)}
+.hci{display:flex;justify-content:space-between;padding:8px 14px;border-top:1px solid var(--bd);font-size:13px;align-items:center;gap:8px}
+.hci-nm{color:var(--ink);flex:1}
+.hci-nm.out{color:var(--red-txt);text-decoration:line-through}
+.hci-r{font-size:12px;color:var(--ink3);white-space:nowrap}
+.badge-cancelled{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--red-txt);background:var(--red-bg);border:1px solid var(--red-bd);border-radius:99px;padding:2px 7px}
+
+.empty{text-align:center;padding:52px 20px;color:var(--ink3);font-size:14px;line-height:1.8}
+.empty strong{display:block;font-size:17px;margin-bottom:6px;color:var(--ink2)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:50}
+.sheet{background:var(--bg);border-radius:var(--r) var(--r) 0 0;padding:20px;width:100%;display:flex;flex-direction:column;gap:14px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet-title{font-size:16px;font-weight:600;color:var(--ink)}
+.sheet input{width:100%;padding:12px 14px;border-radius:var(--rs);border:1.5px solid var(--bd2);background:var(--bg2);color:var(--ink);font-size:16px;outline:none}
+.sheet input:focus{border-color:var(--ink)}
+.sheet-btns{display:flex;gap:8px}
+.sheet-btns button{flex:1;padding:13px;border-radius:var(--rs);font-size:14px;font-weight:500;border:1px solid var(--bd2)}
+.btn-cancel-s{background:var(--bg2);color:var(--ink2)}
+.btn-ok{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.loading{text-align:center;padding:40px;color:var(--ink3);font-size:14px}
+</style>
+</head>
+<body>
+
+<!-- STATION SCREEN -->
+<div id="station-screen" class="screen hidden">
+  <div class="sc-logo">Bingo · Restock</div>
+  <div class="sc-title">Where are you working today?</div>
+  <div class="sc-sub">This determines whether your orders are treated as internal restocks or transfers.</div>
+  <div class="station-btns">
+    <button class="station-btn" onclick="setStation('coffee')">
+      <span class="st-icon">☕</span>
+      <div class="st-info">
+        <span class="st-name">Coffee Bar</span>
+        <span class="st-desc">Main bar · same warehouse · internal restock</span>
+      </div>
+    </button>
+    <button class="station-btn transfer-btn" onclick="setStation('tea')">
+      <span class="st-icon">🍵</span>
+      <div class="st-info">
+        <span class="st-name">Tea Bar</span>
+        <span class="st-desc">Upper floor · separate account · transfer</span>
+      </div>
+    </button>
+  </div>
+</div>
+
+<!-- NAME SCREEN -->
+<div id="name-screen" class="screen hidden">
+  <div class="sc-logo">Bingo · Restock</div>
+  <div class="sc-title">What's your name?</div>
+  <div class="sc-sub">Shown on orders so the team knows who requested what.</div>
+  <div class="sc-card">
+    <label>Your name</label>
+    <input id="ns-input" type="text" placeholder="e.g. Alex" autocomplete="given-name" maxlength="20">
+    <button class="btn-go" onclick="saveName()">Continue</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" class="hidden">
+  <div class="header">
+    <div class="brand">Bingo · Restock</div>
+    <div class="title-row">
+      <div class="app-title">Orders</div>
+      <div id="station-pill" class="station-pill coffee" onclick="changeStation()"></div>
+      <div class="name-tag" id="name-tag" onclick="openRename()"></div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab on" id="t-build" onclick="sw('build')">Build</div>
+    <div class="tab" id="t-active" onclick="sw('active')">Active<span class="tab-bub" id="bub-a"></span></div>
+    <div class="tab" id="t-hist" onclick="sw('hist')">History</div>
+  </div>
+  <div class="views">
+    <div class="view on" id="v-build"></div>
+    <div class="view" id="v-active"></div>
+    <div class="view" id="v-hist"></div>
+  </div>
+</div>
+
+<!-- RENAME SHEET -->
+<div id="rename-overlay" class="overlay hidden">
+  <div class="sheet">
+    <div class="sheet-title">Your name</div>
+    <input id="rename-input" type="text" maxlength="20">
+    <div class="sheet-btns">
+      <button class="btn-cancel-s" onclick="closeRename()">Cancel</button>
+      <button class="btn-ok" onclick="confirmRename()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getDatabase, ref, push, set, get, onValue, update, runTransaction }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+const FB = {
+  apiKey:"AIzaSyBlhkq7t3KlDYwZcXUclF_0AqWYYdnlou8",
+  authDomain:"compass-bar-448c0.firebaseapp.com",
+  databaseURL:"https://compass-bar-448c0-default-rtdb.firebaseio.com",
+  projectId:"compass-bar-448c0",
+  storageBucket:"compass-bar-448c0.firebasestorage.app",
+  messagingSenderId:"281477138732",
+  appId:"1:281477138732:web:c2c0fffd5bd060f47ec489"
+};
+
+// ── SEED DATA ──
+const SEED = [
+  {id:'milk_regular',name:'Milk Regular',cat:'Milk & Dairy',gl:'411048',glCat:'Dairy',unitLabel:'gallon',unitPrice:5.33,boxLabel:'case',boxPrice:0},
+  {id:'non_fat_milk',name:'Non Fat Milk',cat:'Milk & Dairy',gl:'411048',glCat:'Dairy',unitLabel:'gallon',unitPrice:4.32,boxLabel:'case',boxPrice:0},
+  {id:'oat_milk',name:'Oat Milk',cat:'Milk & Dairy',gl:'411048',glCat:'Dairy',unitLabel:'each',unitPrice:3.10,boxLabel:'case',boxPrice:0},
+  {id:'alm_milk',name:'Alm Milk',cat:'Milk & Dairy',gl:'411048',glCat:'Dairy',unitLabel:'each',unitPrice:3.10,boxLabel:'case',boxPrice:0},
+  {id:'soy_milk',name:'Soy Milk',cat:'Milk & Dairy',gl:'411048',glCat:'Dairy',unitLabel:'each',unitPrice:2.23,boxLabel:'case',boxPrice:0},
+  {id:'chai',name:'Chai',cat:'Milk & Dairy',gl:'411054',glCat:'Beverages',unitLabel:'package',unitPrice:27.30,boxLabel:'case',boxPrice:0},
+  {id:'half_and_half',name:'Half and Half',cat:'Milk & Dairy',gl:'411048',glCat:'Dairy',unitLabel:'quart',unitPrice:3.44,boxLabel:'case',boxPrice:0},
+  {id:'coffee_beans',name:'Coffee Beans',cat:'Coffee',gl:'411054',glCat:'Beverages',unitLabel:'bag',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'decaf_beans',name:'Decaf Beans',cat:'Coffee',gl:'411054',glCat:'Beverages',unitLabel:'bag',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'cold_brew',name:'Cold Brew',cat:'Coffee',gl:'411054',glCat:'Beverages',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'matcha',name:'Matcha',cat:'Coffee',gl:'411054',glCat:'Beverages',unitLabel:'bag',unitPrice:105.60,boxLabel:'case',boxPrice:0},
+  {id:'tea_bergamot',name:'Tea Bergamot',cat:'Tea',gl:'411054',glCat:'Beverages',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'tea_breakfast',name:'Tea Breakfast',cat:'Tea',gl:'411054',glCat:'Beverages',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'tea_red_nectar',name:'Tea Red Nectar',cat:'Tea',gl:'411054',glCat:'Beverages',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'tea_masala',name:'Tea Masala',cat:'Tea',gl:'411054',glCat:'Beverages',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'tea_jasmin',name:'Tea Jasmin',cat:'Tea',gl:'411054',glCat:'Beverages',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'tea_white',name:'Tea White',cat:'Tea',gl:'411054',glCat:'Beverages',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'cups_16oz_hot',name:'Cups 16oz Hot',cat:'Cups — Hot',gl:'411075',glCat:'Paper Supplies',unitLabel:'sleeve',unitPrice:6.77,boxLabel:'case',boxPrice:0},
+  {id:'cups_12oz_hot',name:'Cups 12oz Hot',cat:'Cups — Hot',gl:'411075',glCat:'Paper Supplies',unitLabel:'sleeve',unitPrice:8.36,boxLabel:'case',boxPrice:0},
+  {id:'cups_8oz_hot',name:'Cups 8oz Hot',cat:'Cups — Hot',gl:'411075',glCat:'Paper Supplies',unitLabel:'sleeve',unitPrice:10.00,boxLabel:'case',boxPrice:0},
+  {id:'cups_4oz_hot',name:'Cups 4oz Hot',cat:'Cups — Hot',gl:'411075',glCat:'Paper Supplies',unitLabel:'sleeve',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'cups_16oz_cold',name:'Cups 16oz Cold',cat:'Cups — Cold',gl:'411075',glCat:'Paper Supplies',unitLabel:'sleeve',unitPrice:6.47,boxLabel:'case',boxPrice:0},
+  {id:'cups_12oz_cold',name:'Cups 12oz Cold',cat:'Cups — Cold',gl:'411075',glCat:'Paper Supplies',unitLabel:'sleeve',unitPrice:5.47,boxLabel:'case',boxPrice:0},
+  {id:'lids_16_12_hot',name:'Lids 16-12 Hot',cat:'Lids & Sleeves',gl:'411075',glCat:'Paper Supplies',unitLabel:'sleeve',unitPrice:7.24,boxLabel:'case',boxPrice:0},
+  {id:'lids_8_hot',name:'Lids 8 Hot',cat:'Lids & Sleeves',gl:'411075',glCat:'Paper Supplies',unitLabel:'sleeve',unitPrice:7.33,boxLabel:'case',boxPrice:0},
+  {id:'lids_16_cold',name:'Lids 16 Cold',cat:'Lids & Sleeves',gl:'411075',glCat:'Paper Supplies',unitLabel:'sleeve',unitPrice:4.67,boxLabel:'case',boxPrice:0},
+  {id:'lids_12_cold',name:'Lids 12 Cold',cat:'Lids & Sleeves',gl:'411075',glCat:'Paper Supplies',unitLabel:'sleeve',unitPrice:4.66,boxLabel:'case',boxPrice:0},
+  {id:'sleeves_for_cups',name:'Sleeves for Cups',cat:'Lids & Sleeves',gl:'411075',glCat:'Paper Supplies',unitLabel:'sleeve',unitPrice:6.10,boxLabel:'case',boxPrice:0},
+  {id:'vanilla',name:'Vanilla',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:6.24,boxLabel:'case',boxPrice:0},
+  {id:'sf_vanilla',name:'SF Vanilla',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:6.24,boxLabel:'case',boxPrice:0},
+  {id:'simple',name:'Simple',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:6.24,boxLabel:'case',boxPrice:0},
+  {id:'toffee',name:'Toffee',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:6.24,boxLabel:'case',boxPrice:0},
+  {id:'hazelnut',name:'Hazelnut',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:6.24,boxLabel:'case',boxPrice:0},
+  {id:'sf_hazelnut',name:'SF Hazelnut',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:6.24,boxLabel:'case',boxPrice:0},
+  {id:'pine',name:'Pine',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:6.24,boxLabel:'case',boxPrice:0},
+  {id:'pineapple',name:'Pineapple',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:10.88,boxLabel:'case',boxPrice:0},
+  {id:'strawberry',name:'Strawberry',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:6.24,boxLabel:'case',boxPrice:0},
+  {id:'pumpkin_pie',name:'Pumpkin Pie',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:6.24,boxLabel:'case',boxPrice:0},
+  {id:'pumpkin_spice',name:'Pumpkin Spice',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:6.24,boxLabel:'case',boxPrice:0},
+  {id:'peppermint',name:'Peppermint',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:6.24,boxLabel:'case',boxPrice:0},
+  {id:'pistachio',name:'Pistachio',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:6.24,boxLabel:'case',boxPrice:0},
+  {id:'lavender',name:'Lavender',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:6.24,boxLabel:'case',boxPrice:0},
+  {id:'caramel',name:'Caramel',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:20.38,boxLabel:'case',boxPrice:0},
+  {id:'white_coco',name:'White Coco',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:20.38,boxLabel:'case',boxPrice:0},
+  {id:'dark_coco',name:'Dark Coco',cat:'Syrups',gl:'411054',glCat:'Beverages',unitLabel:'bottle',unitPrice:19.34,boxLabel:'case',boxPrice:0},
+  {id:'honey',name:'Honey',cat:'Supplies',gl:'411039',glCat:'Grocery - Storeroom',unitLabel:'each',unitPrice:3.23,boxLabel:'case',boxPrice:38.70},
+  {id:'straws',name:'Straws',cat:'Supplies',gl:'411075',glCat:'Paper Supplies',unitLabel:'box',unitPrice:8.77,boxLabel:'case',boxPrice:0},
+  {id:'cinnamon',name:'Cinnamon',cat:'Supplies',gl:'411039',glCat:'Grocery - Storeroom',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'sanitizer',name:'Sanitizer',cat:'Supplies',gl:'674102',glCat:'Cleaning Supplies',unitLabel:'each',unitPrice:29.55,boxLabel:'case',boxPrice:0},
+  {id:'towels',name:'Towels',cat:'Supplies',gl:'674102',glCat:'Cleaning Supplies',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'spoons',name:'Spoons',cat:'Supplies',gl:'645208',glCat:'Kitchen Supplies',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'forks',name:'Forks',cat:'Supplies',gl:'645208',glCat:'Kitchen Supplies',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'knives',name:'Knives',cat:'Supplies',gl:'645208',glCat:'Kitchen Supplies',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'paper_napkins',name:'Paper Napkins',cat:'Supplies',gl:'411075',glCat:'Paper Supplies',unitLabel:'sleeve',unitPrice:4.19,boxLabel:'case',boxPrice:0},
+  {id:'gloves',name:'Gloves',cat:'Supplies',gl:'411075',glCat:'Paper Supplies',unitLabel:'box',unitPrice:7.24,boxLabel:'case',boxPrice:0},
+  {id:'quiche_mediterranean',name:'Quiche Mediterranean',cat:'Food',gl:'411080',glCat:'Prepared Foods',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'quiche_spinach',name:'Quiche Spinach',cat:'Food',gl:'411080',glCat:'Prepared Foods',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'egg_bites_3_cheese',name:'Egg Bites 3 Cheese',cat:'Food',gl:'411080',glCat:'Prepared Foods',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'egg_bites_bacon',name:'Egg Bites Bacon',cat:'Food',gl:'411080',glCat:'Prepared Foods',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'egg_bites_sausage',name:'Egg Bites Sausage',cat:'Food',gl:'411080',glCat:'Prepared Foods',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'breakfast_sandwich',name:'Breakfast Sandwich',cat:'Food',gl:'411080',glCat:'Prepared Foods',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'cream_cheese',name:'Cream Cheese',cat:'Food',gl:'411039',glCat:'Grocery - Storeroom',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'utensils',name:'Utensils',cat:'Pastry',gl:'645208',glCat:'Kitchen Supplies',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'sheets_for_pastries',name:'Sheets for Pastries',cat:'Pastry',gl:'411075',glCat:'Paper Supplies',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'boxes_for_pastries',name:'Boxes for Pastries',cat:'Pastry',gl:'411075',glCat:'Paper Supplies',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'club_soda',name:'Club Soda',cat:'Drinks',gl:'411054',glCat:'Beverages',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'lemonade',name:'Lemonade',cat:'Drinks',gl:'411054',glCat:'Beverages',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+  {id:'brewed_ice_tea',name:'Brewed Ice Tea',cat:'Drinks',gl:'411054',glCat:'Beverages',unitLabel:'each',unitPrice:0,boxLabel:'case',boxPrice:0},
+];
+
+const fbApp     = initializeApp(FB);
+const db        = getDatabase(fbApp);
+const orderRef  = ref(db,'units/bingo/orders');
+const itemsRef  = ref(db,'units/bingo/items');
+const counterRef= ref(db,'units/bingo/counter');
+
+let orders={}, dbItems={}, cart={}, curTab='build', userName='', station='coffee';
+const expandedCats=new Set(), expandedOrders=new Set();
+
+// ── BOOT ──
+async function boot() {
+  const n = localStorage.getItem('bingo_name');
+  const s = localStorage.getItem('bingo_station');
+  if (!n) { document.getElementById('name-screen').classList.remove('hidden'); setTimeout(()=>document.getElementById('ns-input').focus(),100); return; }
+  userName = n;
+  if (!s) { document.getElementById('station-screen').classList.remove('hidden'); return; }
+  station = s;
+  await startApp();
+}
+
+window.saveName = function() {
+  const v = document.getElementById('ns-input').value.trim();
+  if (!v) return;
+  userName = v; localStorage.setItem('bingo_name', v);
+  document.getElementById('name-screen').classList.add('hidden');
+  document.getElementById('station-screen').classList.remove('hidden');
+};
+
+window.setStation = async function(s) {
+  station = s; localStorage.setItem('bingo_station', s);
+  document.getElementById('station-screen').classList.add('hidden');
+  await startApp();
+};
+
+window.changeStation = function() {
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('station-screen').classList.remove('hidden');
+};
+
+window.openRename = ()=>{ document.getElementById('rename-input').value=userName; document.getElementById('rename-overlay').classList.remove('hidden'); setTimeout(()=>document.getElementById('rename-input').focus(),50); };
+window.closeRename = ()=>document.getElementById('rename-overlay').classList.add('hidden');
+window.confirmRename = ()=>{ const v=document.getElementById('rename-input').value.trim(); if(v){userName=v;localStorage.setItem('bingo_name',v);document.getElementById('name-tag').textContent=v;} closeRename(); };
+
+async function startApp() {
+  // Seed items if empty
+  const snap = await get(itemsRef);
+  if (!snap.exists()) {
+    const seed = {};
+    SEED.forEach(i => { seed[i.id] = i; });
+    await set(itemsRef, seed);
+  }
+  document.getElementById('app').classList.remove('hidden');
+  const pill = document.getElementById('station-pill');
+  pill.textContent = station==='tea' ? '🍵 Tea Bar ▾' : '☕ Coffee Bar ▾';
+  pill.className = 'station-pill ' + (station==='tea'?'tea':'coffee');
+  document.getElementById('name-tag').textContent = userName;
+  const sc = localStorage.getItem('bingo_cart');
+  if (sc) { try { cart=JSON.parse(sc); } catch {} }
+  onValue(itemsRef, snap=>{ dbItems=snap.val()||{}; if(curTab==='build') rBuild(); });
+  onValue(orderRef, snap=>{ orders=snap.val()||{}; if(curTab==='active') rActive(); if(curTab==='hist') rHist(); rBubs(); });
+  sw('build');
+}
+
+// ── UTILS ──
+function saveCart(){localStorage.setItem('bingo_cart',JSON.stringify(cart));}
+function fmt(ts){return ts?new Date(ts).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}):''}
+function today(){return new Date().toDateString()}
+function fmtDay(d){const now=new Date(),diff=Math.round((now-new Date(d))/86400000);if(diff===0)return'Today';if(diff===1)return'Yesterday';return new Date(d).toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});}
+function dollar(n){return n>0?'$'+n.toFixed(2):''}
+function lineTotal(it,qty,type){return type==='box'?it.boxPrice*qty:it.unitPrice*qty;}
+function lineLabel(it,qty,type){const lbl=type==='box'?it.boxLabel:it.unitLabel;return qty+' '+lbl;}
+
+// ── TABS ──
+window.sw = function(t){
+  curTab=t;
+  ['build','active','hist'].forEach(n=>{
+    document.getElementById('t-'+n).className='tab'+(n===t?' on':'');
+    document.getElementById('v-'+n).className='view'+(n===t?' on':'');
+  });
+  if(t==='build') rBuild(); if(t==='active') rActive(); if(t==='hist') rHist();
+};
+function rBubs(){const n=Object.values(orders).filter(o=>o.status==='active'&&o.date===today()).length;const b=document.getElementById('bub-a');if(!b)return;b.style.display=n?'':'none';b.textContent=n;}
+
+// ── BUILD ──
+window.addItem = id=>{ cart[id]={qty:1,type:'unit'}; saveCart(); rBuild(); };
+window.chq = (id,d)=>{ if(!cart[id])return; cart[id].qty=Math.max(0,cart[id].qty+d); if(!cart[id].qty)delete cart[id]; saveCart(); rBuild(); };
+window.setType = (id,t)=>{ if(!cart[id])return; cart[id].type=t; saveCart(); rBuild(); };
+window.toggleCat = label=>{ expandedCats.has(label)?expandedCats.delete(label):expandedCats.add(label); rBuild(); };
+
+window.publish = async function(){
+  const ids=Object.keys(cart).filter(id=>cart[id]?.qty>0);
+  if(!ids.length)return;
+  let num=1;
+  try{
+    await runTransaction(counterRef,cur=>{if(!cur||cur.date!==today())return{date:today(),num:1};return{date:cur.date,num:cur.num+1};});
+    const s=await get(counterRef); num=s.val()?.num||1;
+  }catch{}
+  const items={};
+  ids.forEach(id=>{
+    const it=dbItems[id]||{}; const c=cart[id];
+    const lt=lineTotal(it,c.qty,c.type);
+    items[id]={name:it.name,qty:c.qty,qtyType:c.type,unitLabel:it.unitLabel,unitPrice:it.unitPrice,boxLabel:it.boxLabel,boxPrice:it.boxPrice,glCode:it.gl,glCat:it.glCat,lineTotal:lt,s:'pending'};
+  });
+  await set(push(orderRef),{num,createdAt:Date.now(),createdBy:userName,station,isTransfer:station==='tea',date:today(),status:'active',completedAt:null,items});
+  cart={}; saveCart(); sw('active');
+};
+
+function cartTotal(){return Object.keys(cart).reduce((sum,id)=>{const it=dbItems[id]||{};const c=cart[id]||{};return sum+lineTotal(it,c.qty||0,c.type||'unit');},0);}
+
+function rBuild(){
+  if(!Object.keys(dbItems).length){document.getElementById('v-build').innerHTML='<div class="loading">Loading items...</div>';return;}
+  const isTransfer=station==='tea';
+  const n=Object.keys(cart).filter(id=>cart[id]?.qty>0).length;
+  const tot=cartTotal();
+  let h='';
+  if(n>0){
+    h+=`<div class="cart-bar"><span class="cart-label">${n} item${n>1?'s':''}</span><span class="cart-total">${dollar(tot)}</span><button class="pub-btn${isTransfer?' transfer':''}" onclick="publish()">${isTransfer?'Publish Transfer →':'Publish Order →'}</button></div>`;
+  }
+  // Group by cat
+  const cats={};
+  Object.values(dbItems).forEach(it=>{ if(!cats[it.cat])cats[it.cat]=[]; cats[it.cat].push(it); });
+  Object.entries(cats).forEach(([cat,items])=>{
+    const open=expandedCats.has(cat);
+    const inCat=items.filter(it=>cart[it.id]?.qty>0).length;
+    const safeL=cat.replace(/'/g,"\\'");
+    h+=`<div class="cat-hd" onclick="toggleCat('${safeL}')"><span>${cat}</span><span style="display:flex;align-items:center;gap:6px">${inCat>0?`<span class="cat-badge">${inCat}</span>`:''}<span class="cat-chevron${open?' open':''}">▼</span></span></div>`;
+    if(open){
+      items.sort((a,b)=>a.name.localeCompare(b.name)).forEach(it=>{
+        const c=cart[it.id], sel=!!(c?.qty>0);
+        const priceHint=c?.type==='box'&&it.boxPrice>0?dollar(it.boxPrice)+'/'+it.boxLabel:it.unitPrice>0?dollar(it.unitPrice)+'/'+it.unitLabel:'';
+        h+=`<div class="item-row${sel?' in-cart':''}"><div class="item-info"><div class="item-name">${it.name}</div>${priceHint||sel?`<div class="item-price">${sel?(c.type==='box'&&it.boxPrice>0?dollar(it.boxPrice)+'/'+it.boxLabel:it.unitPrice>0?dollar(it.unitPrice)+'/'+it.unitLabel:'no price set'):(it.unitPrice>0?dollar(it.unitPrice)+'/'+it.unitLabel:'')}</div>`:''}</div>`;
+        if(sel){
+          const hasBox=it.boxPrice>0||it.boxLabel;
+          h+=`<div class="cart-ctrl"><div class="qty-row"><button class="qb" onclick="chq('${it.id}',-1)">−</button><span class="qn">${c.qty}</span><button class="qb" onclick="chq('${it.id}',1)">+</button></div>`;
+          if(hasBox){h+=`<div class="type-toggle"><button class="${c.type==='unit'?'on':''}" onclick="setType('${it.id}','unit')">${it.unitLabel}</button><button class="${c.type==='box'?'on':''}" onclick="setType('${it.id}','box')">${it.boxLabel}</button></div>`;}
+          h+=`</div>`;
+        } else {
+          h+=`<button class="add-btn" onclick="addItem('${it.id}')">+</button>`;
+        }
+        h+=`</div>`;
+      });
+    }
+  });
+  document.getElementById('v-build').innerHTML=h;
+}
+
+// ── ACTIVE ──
+window.mark = async(key,iid,s)=>{
+  const o=orders[key]; if(!o)return;
+  const newS=o.items[iid]?.s===s?'pending':s;
+  const upd={}; upd[`units/bingo/orders/${key}/items/${iid}/s`]=newS;
+  const allDone=Object.entries(o.items).every(([k,v])=>k===iid?newS!=='pending':v.s!=='pending');
+  upd[`units/bingo/orders/${key}/status`]=allDone?'complete':'active';
+  upd[`units/bingo/orders/${key}/completedAt`]=allDone?Date.now():null;
+  await update(ref(db),upd);
+};
+window.undo = async(key,iid)=>{
+  const upd={}; upd[`units/bingo/orders/${key}/items/${iid}/s`]='pending';
+  upd[`units/bingo/orders/${key}/status`]='active'; upd[`units/bingo/orders/${key}/completedAt`]=null;
+  await update(ref(db),upd);
+};
+window.cancelOrder = async key=>{
+  if(!confirm('Cancel this order?'))return;
+  const upd={}; upd[`units/bingo/orders/${key}/status`]='cancelled'; upd[`units/bingo/orders/${key}/completedAt`]=Date.now();
+  await update(ref(db),upd);
+};
+
+function rActive(){
+  const active=Object.entries(orders).filter(([,o])=>o.status==='active'&&o.date===today()).sort(([,a],[,b])=>a.createdAt-b.createdAt);
+  const el=document.getElementById('v-active');
+  if(!active.length){el.innerHTML='<div class="empty"><strong>No active orders</strong>Build and publish one in the Build tab.</div>';return;}
+  const cats={}; Object.values(dbItems).forEach(it=>{cats[it.id]=it.cat;});
+  let h='';
+  active.forEach(([key,o])=>{
+    const items=Object.entries(o.items||{}),tot=items.length,res=items.filter(([,v])=>v.s!=='pending').length,pct=tot?Math.round(res/tot*100):0;
+    const isTr=o.isTransfer;
+    const bycat={}; items.forEach(([iid,it])=>{const c=cats[iid]||'Other';if(!bycat[c])bycat[c]=[];bycat[c].push([iid,it]);});
+    h+=`<div class="order-card${isTr?' transfer-card':''}"><div class="oc-head"><div class="oc-info"><div class="oc-title">Order #${o.num}${isTr?` <span class="transfer-badge">Transfer</span>`:''}</div><div class="oc-by">by ${o.createdBy} · ${fmt(o.createdAt)}</div></div><div class="oc-right"><div class="oc-meta">${res}/${tot} done · ${pct}%</div><button class="cancel-btn" onclick="cancelOrder('${key}')">Cancel</button></div></div><div class="oc-bar"><div class="oc-fill" style="width:${pct}%"></div></div>`;
+    Object.entries(bycat).forEach(([cat,grp])=>{
+      h+=`<div class="oi-cat">${cat}</div>`;
+      grp.forEach(([iid,it])=>{
+        const pd=it.s==='pending',dn=it.s==='done';
+        const qtyLbl=lineLabel(it,it.qty,it.qtyType);
+        h+=`<div class="oi s-${it.s}"><span class="oi-qty">${qtyLbl}</span><span class="oi-nm">${it.name}</span>${pd?`<div class="act-btns"><button class="ab ab-done" onclick="mark('${key}','${iid}','done')">Done</button><button class="ab ab-out" onclick="mark('${key}','${iid}','out')">Out</button></div>`:`<div class="act-btns"><span class="${dn?'stamp-done':'stamp-out'}">${dn?'✓ Done':'✗ Out'}</span><button class="ab ab-undo" onclick="undo('${key}','${iid}')">Undo</button></div>`}</div>`;
+      });
+    });
+    h+=`</div>`;
+  });
+  el.innerHTML=h;
+}
+
+// ── HISTORY ──
+window.toggleOrder=key=>{expandedOrders.has(key)?expandedOrders.delete(key):expandedOrders.add(key);rHist();};
+
+function rHist(){
+  const done=Object.entries(orders).filter(([,o])=>o.status==='complete'||o.status==='cancelled').sort(([,a],[,b])=>(b.completedAt||0)-(a.completedAt||0));
+  const el=document.getElementById('v-hist');
+  if(!done.length){el.innerHTML='<div class="empty"><strong>No completed orders yet</strong>Completed orders appear here.</div>';return;}
+  const byDay={};
+  done.forEach(([key,o])=>{const d=o.date||today();if(!byDay[d])byDay[d]=[];byDay[d].push([key,o]);});
+  const sortedDays=Object.keys(byDay).sort((a,b)=>new Date(b)-new Date(a));
+  let h='';
+  sortedDays.forEach(day=>{
+    h+=`<div class="hist-day">${fmtDay(day)}</div>`;
+    byDay[day].forEach(([key,o])=>{
+      const cancelled=o.status==='cancelled',isTr=o.isTransfer,items=Object.entries(o.items||{});
+      const outN=items.filter(([,v])=>v.s==='out').length,isOpen=expandedOrders.has(key);
+      const meta=cancelled?`${fmt(o.createdAt)} · cancelled ${fmt(o.completedAt)} · ${items.length} items`:`${fmt(o.createdAt)} → ${fmt(o.completedAt)}${outN?` · ${outN} out`:''} · ${items.length} items`;
+      h+=`<div class="hcard${cancelled?' cancelled':''}${isTr?' transfer-hcard':''}"><div class="hc-head" onclick="toggleOrder('${key}')"><div class="hc-left"><div class="hc-num">Order #${o.num} · ${o.createdBy}${isTr?` <span class="transfer-badge">Transfer</span>`:''} ${cancelled?`<span class="badge-cancelled">Cancelled</span>`:''}</div><div class="hc-meta">${meta}</div></div><span class="hc-chevron${isOpen?' open':''}">▼</span></div>`;
+      if(isOpen){h+=`<div>`;items.forEach(([,it])=>{h+=`<div class="hci"><span class="hci-nm${it.s==='out'?' out':''}">${it.name}</span><span class="hci-r">${lineLabel(it,it.qty,it.qtyType)} ${it.s==='done'?'✓':it.s==='out'?'✗':'—'}</span></div>`;});h+=`</div>`;}
+      h+=`</div>`;
+    });
+  });
+  el.innerHTML=h;
+}
+
+boot();
+</script>
+</body>
+</html>

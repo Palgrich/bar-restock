@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Bingo Admin</title>
+<style>
+:root{--ink:#111;--ink2:#555;--ink3:#999;--bg:#fff;--bg2:#f6f6f6;--bg3:#ededed;--bd:rgba(0,0,0,.10);--bd2:rgba(0,0,0,.18);--green-bg:#eaf3de;--green-txt:#2d5a0e;--red-bg:#fceaea;--red-txt:#a32d2d;--amber:#b87215;--amber-bg:#fef3e2;--amber-bd:#f5c87a;--r:12px;--rs:8px;}
+@media(prefers-color-scheme:dark){:root{--ink:#f0f0f0;--ink2:#aaa;--ink3:#666;--bg:#141414;--bg2:#1e1e1e;--bg3:#2a2a2a;--bd:rgba(255,255,255,.1);--bd2:rgba(255,255,255,.2);}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--ink)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px}
+.hidden{display:none!important}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit}
+
+/* PIN */
+#pin-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:16px}
+.pin-logo{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.pin-title{font-size:22px;font-weight:600;color:var(--ink)}
+.pin-card{width:100%;max-width:300px;display:flex;flex-direction:column;gap:12px}
+.pin-card input{width:100%;padding:14px 16px;border-radius:var(--rs);border:1.5px solid var(--bd2);background:var(--bg2);color:var(--ink);font-size:24px;letter-spacing:.2em;text-align:center;outline:none}
+.pin-card input:focus{border-color:var(--ink)}
+.pin-err{font-size:13px;color:var(--red-txt);text-align:center}
+.btn-go{width:100%;padding:14px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:15px;font-weight:500;border:none}
+.btn-go:active{opacity:.8}
+
+/* APP */
+#app{display:flex;flex-direction:column;height:100vh}
+.header{padding:calc(env(safe-area-inset-top,0px)+14px) 16px 10px;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--bg)}
+.brand{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:2px}
+.app-title{font-size:20px;font-weight:600;color:var(--ink)}
+.tabs{display:flex;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--bg)}
+.tab{flex:1;padding:11px 4px;text-align:center;font-size:13px;font-weight:500;color:var(--ink2);cursor:pointer;border-bottom:2px solid transparent}
+.tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+.views{flex:1;overflow:hidden;position:relative}
+.view{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;padding-bottom:env(safe-area-inset-bottom,16px)}
+.view.on{display:block}
+
+/* REPORT */
+.filter-bar{padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;flex-direction:column;gap:10px}
+.date-row{display:flex;gap:8px;align-items:center}
+.date-row label{font-size:12px;color:var(--ink3);white-space:nowrap}
+.date-row input{flex:1;padding:8px 10px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg);color:var(--ink);font-size:13px}
+.filter-row{display:flex;gap:8px}
+.filter-btn{flex:1;padding:8px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg);color:var(--ink2);font-size:12px;font-weight:500}
+.filter-btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.run-btn{padding:8px 16px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;border:none}
+.run-btn:active{opacity:.8}
+
+.report-section{padding:10px 16px 4px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
+.order-block{margin:6px 16px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.order-block.transfer{border-color:var(--amber-bd)}
+.ob-head{padding:10px 14px;background:var(--bg2);display:flex;justify-content:space-between;align-items:center}
+.transfer .ob-head{background:var(--amber-bg)}
+.ob-title{font-size:13px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:6px}
+.ob-meta{font-size:11px;color:var(--ink3)}
+.ob-total{font-size:13px;font-weight:600;color:var(--ink)}
+.transfer-badge{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:99px;padding:2px 7px}
+.ob-row{display:flex;align-items:center;padding:8px 14px;border-top:1px solid var(--bd);gap:8px;font-size:13px}
+.ob-row.out .ob-name{color:var(--red-txt);text-decoration:line-through}
+.ob-name{flex:1;color:var(--ink)}
+.ob-qty{font-size:12px;color:var(--ink3);white-space:nowrap;min-width:60px;text-align:right}
+.ob-price{font-size:12px;color:var(--ink3);white-space:nowrap;min-width:55px;text-align:right}
+.ob-total-cell{font-size:12px;font-weight:500;color:var(--ink);white-space:nowrap;min-width:55px;text-align:right}
+.ob-gl{font-size:10px;color:var(--ink3);white-space:nowrap}
+
+.gl-summary{margin:12px 16px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.gl-summary-hd{padding:10px 14px;background:var(--ink);color:var(--bg);font-size:13px;font-weight:500}
+.gl-row{display:flex;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--bd);font-size:13px;align-items:center}
+.gl-row-code{font-size:12px;font-weight:600;color:var(--ink);min-width:60px}
+.gl-row-name{flex:1;color:var(--ink2);font-size:12px;padding:0 8px}
+.gl-row-total{font-weight:600;color:var(--ink)}
+.gl-grand{background:var(--bg2);display:flex;justify-content:space-between;padding:12px 14px;border-top:2px solid var(--bd2);font-size:14px;font-weight:600;color:var(--ink)}
+
+.empty-report{text-align:center;padding:40px 20px;color:var(--ink3);font-size:14px}
+
+/* ITEMS */
+.items-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd)}
+.items-header span{font-size:14px;font-weight:500;color:var(--ink)}
+.add-item-btn{padding:8px 16px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;border:none}
+.item-list-row{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--bd);gap:10px;cursor:pointer}
+.item-list-row:active{background:var(--bg2)}
+.il-info{flex:1;min-width:0}
+.il-name{font-size:14px;color:var(--ink)}
+.il-meta{font-size:11px;color:var(--ink3);margin-top:2px}
+.il-gl{font-size:11px;font-weight:600;color:var(--ink2)}
+.edit-icon{font-size:16px;color:var(--ink3)}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:100}
+.modal{background:var(--bg);border-radius:var(--r) var(--r) 0 0;padding:20px;width:100%;max-height:85vh;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.modal-title{font-size:17px;font-weight:600;color:var(--ink)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.field input,.field select{width:100%;padding:10px 12px;border-radius:var(--rs);border:1.5px solid var(--bd2);background:var(--bg2);color:var(--ink);font-size:15px;outline:none}
+.field input:focus,.field select:focus{border-color:var(--ink)}
+.field-row{display:flex;gap:10px}
+.field-row .field{flex:1}
+.modal-btns{display:flex;gap:8px}
+.modal-btns button{flex:1;padding:13px;border-radius:var(--rs);font-size:14px;font-weight:500;border:1px solid var(--bd2)}
+.btn-cancel-m{background:var(--bg2);color:var(--ink2)}
+.btn-save{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn-delete{background:var(--red-bg);color:var(--red-txt);border-color:var(--red-txt)}
+.btn-save:active,.btn-delete:active{opacity:.8}
+
+/* SETTINGS */
+.settings-section{padding:20px 16px;display:flex;flex-direction:column;gap:16px}
+.settings-title{font-size:16px;font-weight:600;color:var(--ink)}
+.settings-desc{font-size:13px;color:var(--ink2);line-height:1.5}
+.pin-change-card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px}
+</style>
+</head>
+<body>
+
+<!-- PIN SCREEN -->
+<div id="pin-screen">
+  <div class="pin-logo">Bingo · Admin</div>
+  <div class="pin-title">Enter PIN</div>
+  <div class="pin-card">
+    <input id="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="••••" onkeydown="if(event.key==='Enter')checkPin()">
+    <div id="pin-err" class="pin-err hidden">Incorrect PIN. Try again.</div>
+    <button class="btn-go" onclick="checkPin()">Unlock</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <div class="header">
+    <div class="brand">Bingo · Admin</div>
+    <div class="app-title">Supervisor Panel</div>
+  </div>
+  <div class="tabs">
+    <div class="tab on" id="t-report" onclick="sw('report')">Report</div>
+    <div class="tab" id="t-items" onclick="sw('items')">Items</div>
+    <div class="tab" id="t-settings" onclick="sw('settings')">Settings</div>
+  </div>
+  <div class="views">
+    <div class="view on" id="v-report"></div>
+    <div class="view" id="v-items"></div>
+    <div class="view" id="v-settings"></div>
+  </div>
+</div>
+
+<!-- ITEM MODAL -->
+<div id="item-modal" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Edit Item</div>
+    <div class="field"><label>Name</label><input id="m-name" type="text"></div>
+    <div class="field"><label>Category (for grouping)</label><input id="m-cat" type="text" placeholder="e.g. Milk & Dairy"></div>
+    <div class="field-row">
+      <div class="field"><label>GL Code</label><input id="m-gl" type="text" placeholder="e.g. 411048"></div>
+      <div class="field"><label>GL Category</label><input id="m-glcat" type="text" placeholder="e.g. Dairy"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Unit label</label><input id="m-ulabel" type="text" placeholder="e.g. gallon"></div>
+      <div class="field"><label>Unit price $</label><input id="m-uprice" type="number" step="0.01" min="0"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Box label</label><input id="m-blabel" type="text" placeholder="e.g. case"></div>
+      <div class="field"><label>Box price $</label><input id="m-bprice" type="number" step="0.01" min="0"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel-m" onclick="closeModal()">Cancel</button>
+      <button id="modal-delete-btn" class="btn-delete hidden" onclick="deleteItem()">Delete</button>
+      <button class="btn-save" onclick="saveItem()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getDatabase, ref, set, get, onValue, update, remove, push }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+const FB = {
+  apiKey:"AIzaSyBlhkq7t3KlDYwZcXUclF_0AqWYYdnlou8",
+  authDomain:"compass-bar-448c0.firebaseapp.com",
+  databaseURL:"https://compass-bar-448c0-default-rtdb.firebaseio.com",
+  projectId:"compass-bar-448c0",
+  storageBucket:"compass-bar-448c0.firebasestorage.app",
+  messagingSenderId:"281477138732",
+  appId:"1:281477138732:web:c2c0fffd5bd060f47ec489"
+};
+
+const DEFAULT_PIN = '2024';
+const fbApp  = initializeApp(FB);
+const db     = getDatabase(fbApp);
+const ordRef = ref(db,'units/bingo/orders');
+const itmRef = ref(db,'units/bingo/items');
+const cfgRef = ref(db,'units/bingo/config');
+
+let orders={}, dbItems={}, config={adminPin:DEFAULT_PIN}, curTab='report';
+let reportFilter='transfers'; // 'all' | 'transfers' | 'coffee'
+let editingItemId=null;
+
+// ── PIN ──
+window.checkPin = async function(){
+  const v = document.getElementById('pin-input').value;
+  const snap = await get(cfgRef);
+  const pin = snap.val()?.adminPin || DEFAULT_PIN;
+  if(v===pin){
+    document.getElementById('pin-screen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    startApp();
+  } else {
+    document.getElementById('pin-err').classList.remove('hidden');
+    document.getElementById('pin-input').value='';
+  }
+};
+
+function startApp(){
+  onValue(ordRef, snap=>{ orders=snap.val()||{}; if(curTab==='report') rReport(); });
+  onValue(itmRef, snap=>{ dbItems=snap.val()||{}; if(curTab==='items') rItems(); });
+  onValue(cfgRef, snap=>{ config=snap.val()||{}; });
+  rReport();
+}
+
+// ── TABS ──
+window.sw = function(t){
+  curTab=t;
+  ['report','items','settings'].forEach(n=>{
+    document.getElementById('t-'+n).className='tab'+(n===t?' on':'');
+    document.getElementById('v-'+n).className='view'+(n===t?' on':'');
+  });
+  if(t==='report') rReport();
+  if(t==='items')  rItems();
+  if(t==='settings') rSettings();
+};
+
+// ── UTILS ──
+function fmt(ts){return ts?new Date(ts).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}):''}
+function fmtDate(ts){return ts?new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}
+function dollar(n){return n>0?'$'+n.toFixed(2):'-'}
+function lineTotal(it,qty,type){const p=type==='box'?it.boxPrice:it.unitPrice;return(p||0)*qty;}
+function lineLabel(qty,type,it){return qty+' '+(type==='box'?it.boxLabel||'box':it.unitLabel||'each')}
+
+// ── REPORT ──
+window.setFilter = function(f){
+  reportFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
+  runReport();
+};
+window.runReport = function(){rReport();};
+
+function rReport(){
+  const el=document.getElementById('v-report');
+  const fromVal=document.getElementById('r-from')?.value;
+  const toVal=document.getElementById('r-to')?.value;
+  const fromTs=fromVal?new Date(fromVal).getTime():0;
+  const toTs=toVal?new Date(toVal+'T23:59:59').getTime():Date.now()+86400000;
+
+  // Filter orders
+  let filtered=Object.entries(orders).filter(([,o])=>{
+    if(!o.completedAt&&o.status!=='cancelled')return false;
+    const ts=o.completedAt||o.createdAt;
+    if(ts<fromTs||ts>toTs)return false;
+    if(reportFilter==='transfers'&&!o.isTransfer)return false;
+    if(reportFilter==='coffee'&&o.isTransfer)return false;
+    return true;
+  }).sort(([,a],[,b])=>(b.completedAt||0)-(a.completedAt||0));
+
+  const today=new Date().toDateString();
+  const yesterday=new Date(Date.now()-86400000).toDateString();
+
+  let h=`<div class="filter-bar">
+    <div class="date-row">
+      <label>From</label><input id="r-from" type="date" value="${fromVal||''}">
+      <label>To</label><input id="r-to" type="date" value="${toVal||''}">
+      <button class="run-btn" onclick="runReport()">Go</button>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn${reportFilter==='transfers'?' on':''}" data-f="transfers" onclick="setFilter('transfers')">Transfers only</button>
+      <button class="filter-btn${reportFilter==='coffee'?' on':''}" data-f="coffee" onclick="setFilter('coffee')">Coffee Bar only</button>
+      <button class="filter-btn${reportFilter==='all'?' on':''}" data-f="all" onclick="setFilter('all')">All orders</button>
+    </div>
+  </div>`;
+
+  if(!filtered.length){
+    h+='<div class="empty-report">No orders match the selected filters.</div>';
+    el.innerHTML=h; return;
+  }
+
+  // GL summary
+  const glTotals={};
+  filtered.forEach(([,o])=>{
+    if(o.status==='cancelled')return;
+    Object.values(o.items||{}).forEach(it=>{
+      if(it.s==='out')return;
+      const lt=lineTotal(it,it.qty,it.qtyType);
+      if(!lt)return;
+      const key=it.glCode||'Unknown';
+      if(!glTotals[key])glTotals[key]={name:it.glCat||'',total:0};
+      glTotals[key].total+=lt;
+    });
+  });
+
+  // Orders list
+  h+=`<div class="report-section">${filtered.length} order${filtered.length>1?'s':''}</div>`;
+  filtered.forEach(([key,o])=>{
+    const isTr=o.isTransfer,cancelled=o.status==='cancelled';
+    const items=Object.entries(o.items||{});
+    const orderTotal=items.reduce((s,[,it])=>it.s!=='out'?s+lineTotal(it,it.qty,it.qtyType):s,0);
+    const dateStr=new Date(o.completedAt||o.createdAt).toDateString();
+    const dayLabel=dateStr===today?'Today':dateStr===yesterday?'Yesterday':fmtDate(o.completedAt||o.createdAt);
+    h+=`<div class="order-block${isTr?' transfer':''}${cancelled?' cancelled':''}">
+      <div class="ob-head">
+        <div><div class="ob-title">Order #${o.num}${isTr?` <span class="transfer-badge">Transfer</span>`:''}</div>
+        <div class="ob-meta">${dayLabel} · ${fmt(o.createdAt)} · ${o.createdBy}${cancelled?' · CANCELLED':''}</div></div>
+        ${orderTotal>0?`<div class="ob-total">${dollar(orderTotal)}</div>`:''}
+      </div>`;
+    items.forEach(([,it])=>{
+      const lt=lineTotal(it,it.qty,it.qtyType);
+      h+=`<div class="ob-row${it.s==='out'?' out':''}">
+        <span class="ob-name">${it.name}</span>
+        <span class="ob-qty">${lineLabel(it.qty,it.qtyType,it)}</span>
+        <span class="ob-price">${it.s==='out'?'out':dollar(it.qtyType==='box'?it.boxPrice:it.unitPrice)}</span>
+        <span class="ob-total-cell">${it.s==='out'?'—':dollar(lt)}</span>
+        <span class="ob-gl">${it.glCode||''}</span>
+      </div>`;
+    });
+    h+=`</div>`;
+  });
+
+  // GL Summary table
+  if(Object.keys(glTotals).length){
+    const grandTotal=Object.values(glTotals).reduce((s,v)=>s+v.total,0);
+    h+=`<div class="report-section">Summary by GL Code</div><div class="gl-summary"><div class="gl-summary-hd">GL Summary</div>`;
+    Object.entries(glTotals).sort(([a],[b])=>a.localeCompare(b)).forEach(([code,v])=>{
+      h+=`<div class="gl-row"><span class="gl-row-code">${code}</span><span class="gl-row-name">${v.name}</span><span class="gl-row-total">${dollar(v.total)}</span></div>`;
+    });
+    h+=`<div class="gl-grand"><span>Total</span><span>${dollar(grandTotal)}</span></div></div>`;
+  }
+
+  el.innerHTML=h;
+}
+
+// ── ITEMS ──
+function rItems(){
+  const el=document.getElementById('v-items');
+  const items=Object.entries(dbItems).sort(([,a],[,b])=>a.name.localeCompare(b.name));
+  let h=`<div class="items-header"><span>${items.length} items</span><button class="add-item-btn" onclick="openAddItem()">+ Add item</button></div>`;
+  items.forEach(([id,it])=>{
+    const priceStr=[it.unitPrice>0?`${dollar(it.unitPrice)}/${it.unitLabel}`:'',it.boxPrice>0?`${dollar(it.boxPrice)}/${it.boxLabel}`:''].filter(Boolean).join(' · ')||'no price';
+    h+=`<div class="item-list-row" onclick="openEditItem('${id}')">
+      <div class="il-info">
+        <div class="il-name">${it.name}</div>
+        <div class="il-meta">${it.cat} · ${priceStr}</div>
+      </div>
+      <div class="il-gl">${it.gl||''}</div>
+      <span class="edit-icon">›</span>
+    </div>`;
+  });
+  el.innerHTML=h;
+}
+
+// ── ITEM MODAL ──
+window.openAddItem = function(){
+  editingItemId=null;
+  document.getElementById('modal-title').textContent='Add Item';
+  document.getElementById('modal-delete-btn').classList.add('hidden');
+  ['m-name','m-cat','m-gl','m-glcat','m-ulabel','m-blabel'].forEach(id=>document.getElementById(id).value='');
+  ['m-uprice','m-bprice'].forEach(id=>document.getElementById(id).value='0');
+  document.getElementById('item-modal').classList.remove('hidden');
+};
+
+window.openEditItem = function(id){
+  editingItemId=id;
+  const it=dbItems[id]; if(!it)return;
+  document.getElementById('modal-title').textContent='Edit Item';
+  document.getElementById('modal-delete-btn').classList.remove('hidden');
+  document.getElementById('m-name').value=it.name||'';
+  document.getElementById('m-cat').value=it.cat||'';
+  document.getElementById('m-gl').value=it.gl||'';
+  document.getElementById('m-glcat').value=it.glCat||'';
+  document.getElementById('m-ulabel').value=it.unitLabel||'';
+  document.getElementById('m-uprice').value=it.unitPrice||0;
+  document.getElementById('m-blabel').value=it.boxLabel||'';
+  document.getElementById('m-bprice').value=it.boxPrice||0;
+  document.getElementById('item-modal').classList.remove('hidden');
+};
+
+window.closeModal = ()=>document.getElementById('item-modal').classList.add('hidden');
+
+window.saveItem = async function(){
+  const name=document.getElementById('m-name').value.trim();
+  if(!name){alert('Name is required.');return;}
+  const item={
+    name, cat:document.getElementById('m-cat').value.trim(),
+    gl:document.getElementById('m-gl').value.trim(),
+    glCat:document.getElementById('m-glcat').value.trim(),
+    unitLabel:document.getElementById('m-ulabel').value.trim()||'each',
+    unitPrice:parseFloat(document.getElementById('m-uprice').value)||0,
+    boxLabel:document.getElementById('m-blabel').value.trim()||'case',
+    boxPrice:parseFloat(document.getElementById('m-bprice').value)||0,
+  };
+  const id=editingItemId||(name.toLowerCase().replace(/[^a-z0-9]/g,'_')+'_'+Date.now());
+  await set(ref(db,`units/bingo/items/${id}`),{...item,id});
+  closeModal();
+};
+
+window.deleteItem = async function(){
+  if(!editingItemId)return;
+  if(!confirm('Delete this item? It will no longer appear in new orders.'))return;
+  await remove(ref(db,`units/bingo/items/${editingItemId}`));
+  closeModal();
+};
+
+// ── SETTINGS ──
+function rSettings(){
+  document.getElementById('v-settings').innerHTML=`
+    <div class="settings-section">
+      <div class="settings-title">Change Admin PIN</div>
+      <div class="settings-desc">Current PIN is used to access this admin panel. Choose something only supervisors know.</div>
+      <div class="pin-change-card">
+        <div class="field"><label>New PIN</label><input id="new-pin" type="password" inputmode="numeric" maxlength="6" placeholder="Enter new PIN"></div>
+        <div class="field"><label>Confirm PIN</label><input id="confirm-pin" type="password" inputmode="numeric" maxlength="6" placeholder="Repeat new PIN"></div>
+        <button class="btn-go" onclick="changePin()">Update PIN</button>
+        <div id="pin-msg" style="font-size:13px;text-align:center"></div>
+      </div>
+    </div>`;
+}
+
+window.changePin = async function(){
+  const n=document.getElementById('new-pin').value;
+  const c=document.getElementById('confirm-pin').value;
+  const msg=document.getElementById('pin-msg');
+  if(n.length<4){msg.style.color='var(--red-txt)';msg.textContent='PIN must be at least 4 digits.';return;}
+  if(n!==c){msg.style.color='var(--red-txt)';msg.textContent='PINs do not match.';return;}
+  await set(ref(db,'units/bingo/config/adminPin'),n);
+  msg.style.color='var(--green-txt)';msg.textContent='PIN updated successfully.';
+  document.getElementById('new-pin').value='';
+  document.getElementById('confirm-pin').value='';
+};
+</script>
+</body>
+</html>
