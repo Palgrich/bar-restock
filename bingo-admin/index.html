@@ -415,24 +415,41 @@ window.exportExcel=function(){
   const filtered=getFiltered();
   if(!filtered.length){alert('No data to export.');return;}
 
-  const rows=[];
-  rows.push(['Date','Time','Order #','Station','Associate','Item','Qty','Unit','Unit Price','Total','GL Code','GL Category','Status']);
+  const fromVal=document.getElementById('r-from')?.value;
+  const toVal=document.getElementById('r-to')?.value;
+  const periodLabel=fromVal&&toVal?`${fromVal} – ${toVal}`:fromVal?`From ${fromVal}`:toVal?`To ${toVal}`:'All dates';
+
+  // Build rows — one row per item, matching the paper form
+  const dataRows=[];
   filtered.forEach(([,o])=>{
     const isTr=o.isTransfer;
-    Object.values(o.items||{}).forEach(it=>{
-      const price=it.qtyType==='box'?it.boxPrice:it.unitPrice;
-      const lt=lineTotal(it,it.qty,it.qtyType);
-      rows.push([
-        fmtDate(o.createdAt), fmt(o.createdAt),
-        `#${o.num}`, isTr?'Tea Bar':'Coffee Bar', o.createdBy,
-        it.name, it.qty, it.qtyType==='box'?it.boxLabel||'box':it.unitLabel||'each',
-        price||0, it.s==='out'?0:lt,
-        it.glCode||'', it.glCat||'', it.s
+    const fromUnit=isTr?'Coffee Bar':'Coffee Bar';
+    const toUnit=isTr?'Tea Bar':'Coffee Bar';
+    const dateStr=new Date(o.createdAt).toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'2-digit'});
+    const itemEntries=Object.values(o.items||{});
+    itemEntries.forEach((it,idx)=>{
+      const price=(it.qtyType==='box'?it.boxPrice:it.unitPrice)||0;
+      const lt=it.s==='out'?0:lineTotal(it,it.qty,it.qtyType);
+      dataRows.push([
+        idx===0?dateStr:'',           // Date (only on first item of order)
+        idx===0?fromUnit:'',          // From Unit
+        idx===0?toUnit:'',            // To Unit
+        it.name,                       // Product
+        it.qty,                        // Amount
+        it.qtyType==='box'?it.boxLabel||'box':it.unitLabel||'each', // Unit
+        idx===0?o.createdBy:'',       // Employee
+        price>0?price:null,           // Price
+        lt>0?lt:null,                  // Total
+        it.glCode||'',                 // GL Code
+        it.glCat||'',                  // GL Category
+        '',                            // P.I.C Sign OFF (blank)
       ]);
     });
+    // Empty separator row between orders
+    dataRows.push(['','','','','','','','','','','','']);
   });
 
-  // GL summary
+  // GL Summary
   const glTotals={};
   filtered.forEach(([,o])=>{
     if(o.status==='cancelled')return;
@@ -444,23 +461,45 @@ window.exportExcel=function(){
       glTotals[k].total+=lt;
     });
   });
-
-  const summaryRows=[['GL Code','GL Category','Total']];
-  Object.entries(glTotals).sort(([a],[b])=>a.localeCompare(b)).forEach(([code,v])=>summaryRows.push([code,v.name,v.total]));
   const grand=Object.values(glTotals).reduce((s,v)=>s+v.total,0);
-  summaryRows.push(['','Grand Total',grand]);
+
+  // Assemble full sheet data
+  const sheetData=[
+    // Title block
+    ['TRANSFERS','','','','','','','','','','',''],
+    [`Period: ${periodLabel}`,'','','','','','','','','','',''],
+    [],
+    // Column headers
+    ['Date','From Unit','To Unit','Product','Amount','Unit','Employee','Unit Price','Total','GL Code','GL Category','P.I.C Sign OFF'],
+    // Data
+    ...dataRows,
+    // GL Summary header
+    [],
+    ['GL CODE SUMMARY','','','','','','','','','','',''],
+    ['GL Code','GL Category','','','','','','','','','Total',''],
+    ...Object.entries(glTotals).sort(([a],[b])=>a.localeCompare(b)).map(([code,v])=>[code,v.name,'','','','','','','','',v.total,'']),
+    ['','GRAND TOTAL','','','','','','','','',grand,''],
+  ];
+
+  const ws=XLSX.utils.aoa_to_sheet(sheetData);
+
+  // Column widths
+  ws['!cols']=[
+    {wch:10},{wch:13},{wch:10},{wch:26},{wch:8},{wch:8},
+    {wch:12},{wch:10},{wch:10},{wch:8},{wch:18},{wch:14}
+  ];
+
+  // Merge title cell across all columns
+  ws['!merges']=[
+    {s:{r:0,c:0},e:{r:0,c:11}},
+    {s:{r:1,c:0},e:{r:1,c:11}},
+    {s:{r:6+dataRows.length,c:0},e:{r:6+dataRows.length,c:11}},
+  ];
 
   const wb=XLSX.utils.book_new();
-  const ws1=XLSX.utils.aoa_to_sheet(rows);
-  ws1['!cols']=[{wch:12},{wch:8},{wch:8},{wch:12},{wch:12},{wch:24},{wch:6},{wch:8},{wch:10},{wch:10},{wch:8},{wch:18},{wch:8}];
-  XLSX.utils.book_append_sheet(wb,ws1,'Orders');
-  const ws2=XLSX.utils.aoa_to_sheet(summaryRows);
-  ws2['!cols']=[{wch:10},{wch:22},{wch:12}];
-  XLSX.utils.book_append_sheet(wb,ws2,'GL Summary');
+  XLSX.utils.book_append_sheet(wb,'Transfers',ws);
 
-  const fromVal=document.getElementById('r-from')?.value;
-  const toVal=document.getElementById('r-to')?.value;
-  const fname=`bingo-transfers${fromVal?'-'+fromVal:''}${toVal?'_'+toVal:''}.xlsx`;
+  const fname=`transfers${fromVal?'-'+fromVal:''}${toVal?'_'+toVal:''}.xlsx`;
   XLSX.writeFile(wb,fname);
 };
 
