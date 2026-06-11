@@ -101,7 +101,9 @@ input{font-family:inherit}
 .transfer-card .oc-head{background:var(--amber-bg)}
 .oc-info{flex:1}
 .oc-title{font-size:14px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:8px}
-.transfer-badge{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:99px;padding:2px 7px}
+.station-label{font-size:11px;font-weight:600;border-radius:99px;padding:2px 8px;letter-spacing:.03em}
+.station-label.coffee{background:var(--bg3);color:var(--ink2)}
+.station-label.tea{background:var(--amber-bg);color:#7a4e0a;border:1px solid var(--amber-bd)}
 .oc-by{font-size:11px;color:var(--ink3);margin-top:2px}
 .oc-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
 .oc-meta{font-size:12px;color:var(--ink2);text-align:right}
@@ -486,7 +488,7 @@ function rActive(){
     const items=Object.entries(o.items||{}),tot=items.length,res=items.filter(([,v])=>v.s!=='pending').length,pct=tot?Math.round(res/tot*100):0;
     const isTr=o.isTransfer;
     const bycat={}; items.forEach(([iid,it])=>{const c=cats[iid]||'Other';if(!bycat[c])bycat[c]=[];bycat[c].push([iid,it]);});
-    h+=`<div class="order-card${isTr?' transfer-card':''}"><div class="oc-head"><div class="oc-info"><div class="oc-title">Order #${o.num}${isTr?` <span class="transfer-badge">Transfer</span>`:''}</div><div class="oc-by">by ${o.createdBy} · ${fmt(o.createdAt)}</div></div><div class="oc-right"><div class="oc-meta">${res}/${tot} done · ${pct}%</div><button class="cancel-btn" onclick="cancelOrder('${key}')">Cancel</button></div></div><div class="oc-bar"><div class="oc-fill" style="width:${pct}%"></div></div>`;
+    h+=`<div class="order-card${isTr?' transfer-card':''}"><div class="oc-head"><div class="oc-info"><div class="oc-title">Order #${o.num} <span class="station-label ${isTr?'tea':'coffee'}">${isTr?'🍵 Tea Bar':'☕ Coffee Bar'}</span></div><div class="oc-by">by ${o.createdBy} · ${fmt(o.createdAt)}</div></div><div class="oc-right"><div class="oc-meta">${res}/${tot} done · ${pct}%</div><button class="cancel-btn" onclick="cancelOrder('${key}')">Cancel</button></div></div><div class="oc-bar"><div class="oc-fill" style="width:${pct}%"></div></div>`;
     Object.entries(bycat).forEach(([cat,grp])=>{
       h+=`<div class="oi-cat">${cat}</div>`;
       grp.forEach(([iid,it])=>{
@@ -517,7 +519,7 @@ function rHist(){
       const cancelled=o.status==='cancelled',isTr=o.isTransfer,items=Object.entries(o.items||{});
       const outN=items.filter(([,v])=>v.s==='out').length,isOpen=expandedOrders.has(key);
       const meta=cancelled?`${fmt(o.createdAt)} · cancelled ${fmt(o.completedAt)} · ${items.length} items`:`${fmt(o.createdAt)} → ${fmt(o.completedAt)}${outN?` · ${outN} out`:''} · ${items.length} items`;
-      h+=`<div class="hcard${cancelled?' cancelled':''}${isTr?' transfer-hcard':''}"><div class="hc-head" onclick="toggleOrder('${key}')"><div class="hc-left"><div class="hc-num">Order #${o.num} · ${o.createdBy}${isTr?` <span class="transfer-badge">Transfer</span>`:''} ${cancelled?`<span class="badge-cancelled">Cancelled</span>`:''}</div><div class="hc-meta">${meta}</div></div><span class="hc-chevron${isOpen?' open':''}">▼</span></div>`;
+      h+=`<div class="hcard${cancelled?' cancelled':''}${isTr?' transfer-hcard':''}"><div class="hc-head" onclick="toggleOrder('${key}')"><div class="hc-left"><div class="hc-num">Order #${o.num} <span class="station-label ${isTr?'tea':'coffee'}">${isTr?'🍵 Tea Bar':'☕ Coffee Bar'}</span> ${cancelled?`<span class="badge-cancelled">Cancelled</span>`:''}</div><div class="hc-meta">${meta}</div></div><span class="hc-chevron${isOpen?' open':''}">▼</span></div>`;
       if(isOpen){h+=`<div>`;items.forEach(([,it])=>{h+=`<div class="hci"><span class="hci-nm${it.s==='out'?' out':''}">${it.name}</span><span class="hci-r">${lineLabel(it,it.qty,it.qtyType)} ${it.s==='done'?'✓':it.s==='out'?'✗':'—'}</span></div>`;});h+=`</div>`;}
       h+=`</div>`;
     });
