@@ -432,7 +432,7 @@ function rBuild(){
   const tot=cartTotal();
   let h='';
   if(n>0){
-    h+=`<div class="cart-bar"><span class="cart-label">${n} item${n>1?'s':''}</span><span class="cart-total">${dollar(tot)}</span><button class="pub-btn${isTransfer?' transfer':''}" onclick="publish()">${isTransfer?'Publish Transfer →':'Publish Order →'}</button></div>`;
+    h+=`<div class="cart-bar"><span class="cart-label">${n} item${n>1?'s':''}</span><button class="pub-btn${isTransfer?' transfer':''}" onclick="publish()">${isTransfer?'Publish Transfer →':'Publish Order →'}</button></div>`;
   }
   // Group by cat
   const cats={};
