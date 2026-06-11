@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Bingo Admin</title>
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 <style>
 :root{--ink:#111;--ink2:#555;--ink3:#999;--bg:#fff;--bg2:#f6f6f6;--bg3:#ededed;--bd:rgba(0,0,0,.10);--bd2:rgba(0,0,0,.18);--green-bg:#eaf3de;--green-txt:#2d5a0e;--red-bg:#fceaea;--red-txt:#a32d2d;--amber:#b87215;--amber-bg:#fef3e2;--amber-bd:#f5c87a;--r:12px;--rs:8px;}
 @media(prefers-color-scheme:dark){:root{--ink:#f0f0f0;--ink2:#aaa;--ink3:#666;--bg:#141414;--bg2:#1e1e1e;--bg3:#2a2a2a;--bd:rgba(255,255,255,.1);--bd2:rgba(255,255,255,.2);}}
@@ -15,7 +16,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 button{font-family:inherit;cursor:pointer}
 input,select{font-family:inherit}
 
-/* PIN */
 #pin-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:16px}
 .pin-logo{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
 .pin-title{font-size:22px;font-weight:600;color:var(--ink)}
@@ -23,10 +23,9 @@ input,select{font-family:inherit}
 .pin-card input{width:100%;padding:14px 16px;border-radius:var(--rs);border:1.5px solid var(--bd2);background:var(--bg2);color:var(--ink);font-size:24px;letter-spacing:.2em;text-align:center;outline:none}
 .pin-card input:focus{border-color:var(--ink)}
 .pin-err{font-size:13px;color:var(--red-txt);text-align:center}
-.btn-go{width:100%;padding:14px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:15px;font-weight:500;border:none}
-.btn-go:active{opacity:.8}
+.btn-primary{width:100%;padding:14px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:15px;font-weight:500;border:none}
+.btn-primary:active{opacity:.8}
 
-/* APP */
 #app{display:flex;flex-direction:column;height:100vh}
 .header{padding:calc(env(safe-area-inset-top,0px)+14px) 16px 10px;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--bg)}
 .brand{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:2px}
@@ -39,46 +38,56 @@ input,select{font-family:inherit}
 .view.on{display:block}
 
 /* REPORT */
-.filter-bar{padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;flex-direction:column;gap:10px}
+.filter-bar{padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;flex-direction:column;gap:10px;position:sticky;top:0;z-index:10}
 .date-row{display:flex;gap:8px;align-items:center}
 .date-row label{font-size:12px;color:var(--ink3);white-space:nowrap}
 .date-row input{flex:1;padding:8px 10px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg);color:var(--ink);font-size:13px}
 .filter-row{display:flex;gap:8px}
 .filter-btn{flex:1;padding:8px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg);color:var(--ink2);font-size:12px;font-weight:500}
 .filter-btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.run-btn{padding:8px 16px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;border:none}
-.run-btn:active{opacity:.8}
+.run-btn{padding:8px 14px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;border:none;white-space:nowrap}
+.export-btn{padding:8px 14px;border-radius:var(--rs);background:var(--green-bg);color:var(--green-txt);font-size:13px;font-weight:500;border:1px solid var(--green-txt);white-space:nowrap}
+.btn-row{display:flex;gap:8px}
 
-.report-section{padding:10px 16px 4px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
+.report-day{padding:10px 16px 4px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
 .order-block{margin:6px 16px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
 .order-block.transfer{border-color:var(--amber-bd)}
-.ob-head{padding:10px 14px;background:var(--bg2);display:flex;justify-content:space-between;align-items:center}
+.ob-head{padding:10px 14px;background:var(--bg2);display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .transfer .ob-head{background:var(--amber-bg)}
-.ob-title{font-size:13px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:6px}
-.ob-meta{font-size:11px;color:var(--ink3)}
-.ob-total{font-size:13px;font-weight:600;color:var(--ink)}
-.transfer-badge{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:99px;padding:2px 7px}
-.ob-row{display:flex;align-items:center;padding:8px 14px;border-top:1px solid var(--bd);gap:8px;font-size:13px}
+.ob-left{flex:1;min-width:0}
+.ob-title{font-size:13px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ob-meta{font-size:11px;color:var(--ink3);margin-top:2px}
+.ob-actions{display:flex;gap:6px;flex-shrink:0}
+.act-btn{padding:5px 10px;border-radius:var(--rs);font-size:11px;font-weight:500;border:1px solid;white-space:nowrap}
+.act-btn.edit{background:var(--bg);color:var(--ink2);border-color:var(--bd2)}
+.act-btn.del{background:var(--red-bg);color:var(--red-txt);border-color:var(--red-bd)}
+.act-btn:active{opacity:.7}
+.ob-total{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}
+.transfer .ob-title,.transfer .ob-meta{color:#1a1a1a}
+.transfer-badge{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#7a4e0a;background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:99px;padding:2px 7px}
+.admin-edit-badge{font-size:10px;font-weight:600;letter-spacing:.03em;color:var(--ink3);background:var(--bg3);border-radius:99px;padding:2px 7px}
+.ob-row{display:flex;align-items:center;padding:7px 14px;border-top:1px solid var(--bd);gap:6px;font-size:13px}
 .ob-row.out .ob-name{color:var(--red-txt);text-decoration:line-through}
-.ob-name{flex:1;color:var(--ink)}
-.ob-qty{font-size:12px;color:var(--ink3);white-space:nowrap;min-width:60px;text-align:right}
-.ob-price{font-size:12px;color:var(--ink3);white-space:nowrap;min-width:55px;text-align:right}
-.ob-total-cell{font-size:12px;font-weight:500;color:var(--ink);white-space:nowrap;min-width:55px;text-align:right}
-.ob-gl{font-size:10px;color:var(--ink3);white-space:nowrap}
+.ob-name{flex:1;color:var(--ink);font-size:13px}
+.ob-qty{font-size:12px;color:var(--ink3);white-space:nowrap;min-width:64px;text-align:right}
+.ob-price{font-size:12px;color:var(--ink3);white-space:nowrap;min-width:52px;text-align:right}
+.ob-total-cell{font-size:12px;font-weight:500;color:var(--ink);white-space:nowrap;min-width:52px;text-align:right}
+.ob-gl{font-size:10px;color:var(--ink3);min-width:46px;text-align:right}
 
-.gl-summary{margin:12px 16px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.gl-summary{margin:12px 16px 24px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
 .gl-summary-hd{padding:10px 14px;background:var(--ink);color:var(--bg);font-size:13px;font-weight:500}
-.gl-row{display:flex;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--bd);font-size:13px;align-items:center}
-.gl-row-code{font-size:12px;font-weight:600;color:var(--ink);min-width:60px}
-.gl-row-name{flex:1;color:var(--ink2);font-size:12px;padding:0 8px}
-.gl-row-total{font-weight:600;color:var(--ink)}
+.gl-row{display:flex;padding:10px 14px;border-top:1px solid var(--bd);font-size:13px;align-items:center}
+.gl-code{font-size:12px;font-weight:600;color:var(--ink);min-width:58px}
+.gl-name{flex:1;color:var(--ink2);font-size:12px;padding:0 8px}
+.gl-total{font-weight:600;color:var(--ink)}
 .gl-grand{background:var(--bg2);display:flex;justify-content:space-between;padding:12px 14px;border-top:2px solid var(--bd2);font-size:14px;font-weight:600;color:var(--ink)}
-
 .empty-report{text-align:center;padding:40px 20px;color:var(--ink3);font-size:14px}
 
 /* ITEMS */
-.items-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd)}
-.items-header span{font-size:14px;font-weight:500;color:var(--ink)}
+.search-bar{padding:10px 16px;border-bottom:1px solid var(--bd);background:var(--bg2);position:sticky;top:0;z-index:5}
+.search-bar input{width:100%;padding:9px 12px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg);color:var(--ink);font-size:14px;outline:none}
+.items-header{padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd)}
+.items-count{font-size:13px;color:var(--ink2)}
 .add-item-btn{padding:8px 16px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;border:none}
 .item-list-row{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--bd);gap:10px;cursor:pointer}
 .item-list-row:active{background:var(--bg2)}
@@ -86,11 +95,11 @@ input,select{font-family:inherit}
 .il-name{font-size:14px;color:var(--ink)}
 .il-meta{font-size:11px;color:var(--ink3);margin-top:2px}
 .il-gl{font-size:11px;font-weight:600;color:var(--ink2)}
-.edit-icon{font-size:16px;color:var(--ink3)}
+.edit-icon{font-size:18px;color:var(--ink3)}
 
-/* MODAL */
+/* MODALS */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:100}
-.modal{background:var(--bg);border-radius:var(--r) var(--r) 0 0;padding:20px;width:100%;max-height:85vh;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.modal{background:var(--bg);border-radius:var(--r) var(--r) 0 0;padding:20px;width:100%;max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 .modal-title{font-size:17px;font-weight:600;color:var(--ink)}
 .field{display:flex;flex-direction:column;gap:6px}
 .field label{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
@@ -103,29 +112,40 @@ input,select{font-family:inherit}
 .btn-cancel-m{background:var(--bg2);color:var(--ink2)}
 .btn-save{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .btn-delete{background:var(--red-bg);color:var(--red-txt);border-color:var(--red-txt)}
-.btn-save:active,.btn-delete:active{opacity:.8}
+.btn-save:active,.btn-delete:active,.btn-cancel-m:active{opacity:.8}
+
+/* EDIT ORDER MODAL */
+.edit-item-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--bd);gap:8px}
+.edit-item-row:last-child{border-bottom:none}
+.ein{flex:1;font-size:14px;color:var(--ink)}
+.eq-row{display:flex;align-items:center;gap:4px}
+.eqb{width:28px;height:28px;border-radius:50%;background:var(--bg3);color:var(--ink);font-size:16px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bd2);flex-shrink:0;line-height:1}
+.eqn{font-size:14px;font-weight:500;min-width:22px;text-align:center}
+.type-toggle{display:flex;border:1px solid var(--bd2);border-radius:99px;overflow:hidden;font-size:11px;font-weight:500}
+.type-toggle button{padding:3px 8px;background:transparent;border:none;color:var(--ink3)}
+.type-toggle button.on{background:var(--ink);color:var(--bg)}
+.status-sel{font-size:11px;padding:4px 6px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg2);color:var(--ink)}
+.remove-item-btn{width:24px;height:24px;border-radius:50%;background:var(--red-bg);color:var(--red-txt);border:none;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 
 /* SETTINGS */
 .settings-section{padding:20px 16px;display:flex;flex-direction:column;gap:16px}
 .settings-title{font-size:16px;font-weight:600;color:var(--ink)}
-.settings-desc{font-size:13px;color:var(--ink2);line-height:1.5}
 .pin-change-card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px}
+.pin-msg{font-size:13px;text-align:center}
 </style>
 </head>
 <body>
 
-<!-- PIN SCREEN -->
 <div id="pin-screen">
   <div class="pin-logo">Bingo · Admin</div>
-  <div class="pin-title">Enter PIN</div>
+  <div class="pin-title">Supervisor Panel</div>
   <div class="pin-card">
     <input id="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="••••" onkeydown="if(event.key==='Enter')checkPin()">
-    <div id="pin-err" class="pin-err hidden">Incorrect PIN. Try again.</div>
-    <button class="btn-go" onclick="checkPin()">Unlock</button>
+    <div id="pin-err" class="pin-err hidden">Incorrect PIN.</div>
+    <button class="btn-primary" onclick="checkPin()">Unlock</button>
   </div>
 </div>
 
-<!-- APP -->
 <div id="app" class="hidden">
   <div class="header">
     <div class="brand">Bingo · Admin</div>
@@ -146,141 +166,271 @@ input,select{font-family:inherit}
 <!-- ITEM MODAL -->
 <div id="item-modal" class="overlay hidden">
   <div class="modal">
-    <div class="modal-title" id="modal-title">Edit Item</div>
+    <div class="modal-title" id="imodal-title">Edit Item</div>
     <div class="field"><label>Name</label><input id="m-name" type="text"></div>
-    <div class="field"><label>Category (for grouping)</label><input id="m-cat" type="text" placeholder="e.g. Milk & Dairy"></div>
+    <div class="field"><label>Category</label><input id="m-cat" type="text"></div>
     <div class="field-row">
-      <div class="field"><label>GL Code</label><input id="m-gl" type="text" placeholder="e.g. 411048"></div>
-      <div class="field"><label>GL Category</label><input id="m-glcat" type="text" placeholder="e.g. Dairy"></div>
+      <div class="field"><label>GL Code</label><input id="m-gl" type="text"></div>
+      <div class="field"><label>GL Category</label><input id="m-glcat" type="text"></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>Unit label</label><input id="m-ulabel" type="text" placeholder="e.g. gallon"></div>
+      <div class="field"><label>Unit label</label><input id="m-ulabel" type="text" placeholder="gallon"></div>
       <div class="field"><label>Unit price $</label><input id="m-uprice" type="number" step="0.01" min="0"></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>Box label</label><input id="m-blabel" type="text" placeholder="e.g. case"></div>
+      <div class="field"><label>Box label</label><input id="m-blabel" type="text" placeholder="case"></div>
       <div class="field"><label>Box price $</label><input id="m-bprice" type="number" step="0.01" min="0"></div>
     </div>
     <div class="modal-btns">
-      <button class="btn-cancel-m" onclick="closeModal()">Cancel</button>
-      <button id="modal-delete-btn" class="btn-delete hidden" onclick="deleteItem()">Delete</button>
+      <button class="btn-cancel-m" onclick="closeItemModal()">Cancel</button>
+      <button id="item-del-btn" class="btn-delete hidden" onclick="deleteItem()">Delete</button>
       <button class="btn-save" onclick="saveItem()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT ORDER MODAL -->
+<div id="order-modal" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-title" id="omodal-title">Edit Order</div>
+    <div id="order-modal-items"></div>
+    <div class="field"><label>Admin note (required)</label><input id="admin-note" type="text" placeholder="Reason for edit..."></div>
+    <div class="modal-btns">
+      <button class="btn-cancel-m" onclick="closeOrderModal()">Cancel</button>
+      <button class="btn-save" onclick="saveOrderEdit()">Save changes</button>
     </div>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getDatabase, ref, set, get, onValue, update, remove, push }
+import { getDatabase, ref, set, get, onValue, update, remove }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
-const FB = {
-  apiKey:"AIzaSyBlhkq7t3KlDYwZcXUclF_0AqWYYdnlou8",
-  authDomain:"compass-bar-448c0.firebaseapp.com",
-  databaseURL:"https://compass-bar-448c0-default-rtdb.firebaseio.com",
-  projectId:"compass-bar-448c0",
-  storageBucket:"compass-bar-448c0.firebasestorage.app",
-  messagingSenderId:"281477138732",
-  appId:"1:281477138732:web:c2c0fffd5bd060f47ec489"
-};
+const FB={apiKey:"AIzaSyBlhkq7t3KlDYwZcXUclF_0AqWYYdnlou8",authDomain:"compass-bar-448c0.firebaseapp.com",databaseURL:"https://compass-bar-448c0-default-rtdb.firebaseio.com",projectId:"compass-bar-448c0",storageBucket:"compass-bar-448c0.firebasestorage.app",messagingSenderId:"281477138732",appId:"1:281477138732:web:c2c0fffd5bd060f47ec489"};
+const DEFAULT_PIN='2024';
+const fbApp=initializeApp(FB);
+const db=getDatabase(fbApp);
+const ordRef=ref(db,'units/bingo/orders');
+const itmRef=ref(db,'units/bingo/items');
+const cfgRef=ref(db,'units/bingo/config');
 
-const DEFAULT_PIN = '2024';
-const fbApp  = initializeApp(FB);
-const db     = getDatabase(fbApp);
-const ordRef = ref(db,'units/bingo/orders');
-const itmRef = ref(db,'units/bingo/items');
-const cfgRef = ref(db,'units/bingo/config');
-
-let orders={}, dbItems={}, config={adminPin:DEFAULT_PIN}, curTab='report';
-let reportFilter='transfers'; // 'all' | 'transfers' | 'coffee'
-let editingItemId=null;
+let orders={}, dbItems={}, config={}, curTab='report', reportFilter='transfers';
+let editingItemId=null, editingOrderKey=null, editOrderItems={};
+let itemSearch='';
 
 // ── PIN ──
-window.checkPin = async function(){
-  const v = document.getElementById('pin-input').value;
-  const snap = await get(cfgRef);
-  const pin = snap.val()?.adminPin || DEFAULT_PIN;
-  if(v===pin){
-    document.getElementById('pin-screen').classList.add('hidden');
-    document.getElementById('app').classList.remove('hidden');
-    startApp();
-  } else {
-    document.getElementById('pin-err').classList.remove('hidden');
-    document.getElementById('pin-input').value='';
-  }
+window.checkPin=async function(){
+  const v=document.getElementById('pin-input').value;
+  const snap=await get(cfgRef); const pin=snap.val()?.adminPin||DEFAULT_PIN;
+  if(v===pin){document.getElementById('pin-screen').classList.add('hidden');document.getElementById('app').classList.remove('hidden');startApp();}
+  else{document.getElementById('pin-err').classList.remove('hidden');document.getElementById('pin-input').value='';}
 };
 
 function startApp(){
-  onValue(ordRef, snap=>{ orders=snap.val()||{}; if(curTab==='report') rReport(); });
-  onValue(itmRef, snap=>{ dbItems=snap.val()||{}; if(curTab==='items') rItems(); });
-  onValue(cfgRef, snap=>{ config=snap.val()||{}; });
+  onValue(ordRef,snap=>{orders=snap.val()||{};if(curTab==='report')rReport();});
+  onValue(itmRef,snap=>{dbItems=snap.val()||{};if(curTab==='items')rItems();});
+  onValue(cfgRef,snap=>{config=snap.val()||{};});
   rReport();
 }
 
 // ── TABS ──
-window.sw = function(t){
+window.sw=function(t){
   curTab=t;
-  ['report','items','settings'].forEach(n=>{
-    document.getElementById('t-'+n).className='tab'+(n===t?' on':'');
-    document.getElementById('v-'+n).className='view'+(n===t?' on':'');
-  });
-  if(t==='report') rReport();
-  if(t==='items')  rItems();
-  if(t==='settings') rSettings();
+  ['report','items','settings'].forEach(n=>{document.getElementById('t-'+n).className='tab'+(n===t?' on':'');document.getElementById('v-'+n).className='view'+(n===t?' on':'');});
+  if(t==='report')rReport(); if(t==='items')rItems(); if(t==='settings')rSettings();
 };
 
 // ── UTILS ──
 function fmt(ts){return ts?new Date(ts).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}):''}
-function fmtDate(ts){return ts?new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}
+function fmtDate(ts){return ts?new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''}
+function fmtDateShort(ts){return ts?new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}
 function dollar(n){return n>0?'$'+n.toFixed(2):'-'}
-function lineTotal(it,qty,type){const p=type==='box'?it.boxPrice:it.unitPrice;return(p||0)*qty;}
+function lineTotal(it,qty,type){return((type==='box'?it.boxPrice:it.unitPrice)||0)*qty;}
 function lineLabel(qty,type,it){return qty+' '+(type==='box'?it.boxLabel||'box':it.unitLabel||'each')}
+function today(){return new Date().toDateString()}
 
 // ── REPORT ──
-window.setFilter = function(f){
-  reportFilter=f;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
-  runReport();
-};
-window.runReport = function(){rReport();};
+window.setFilter=f=>{reportFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('on',b.dataset.f===f));runReport();};
+window.runReport=()=>rReport();
 
-function rReport(){
-  const el=document.getElementById('v-report');
+function getFiltered(){
   const fromVal=document.getElementById('r-from')?.value;
   const toVal=document.getElementById('r-to')?.value;
   const fromTs=fromVal?new Date(fromVal).getTime():0;
   const toTs=toVal?new Date(toVal+'T23:59:59').getTime():Date.now()+86400000;
-
-  // Filter orders
-  let filtered=Object.entries(orders).filter(([,o])=>{
-    if(!o.completedAt&&o.status!=='cancelled')return false;
+  return Object.entries(orders).filter(([,o])=>{
     const ts=o.completedAt||o.createdAt;
     if(ts<fromTs||ts>toTs)return false;
     if(reportFilter==='transfers'&&!o.isTransfer)return false;
     if(reportFilter==='coffee'&&o.isTransfer)return false;
     return true;
-  }).sort(([,a],[,b])=>(b.completedAt||0)-(a.completedAt||0));
+  }).sort(([,a],[,b])=>(b.completedAt||b.createdAt||0)-(a.completedAt||a.createdAt||0));
+}
 
-  const today=new Date().toDateString();
-  const yesterday=new Date(Date.now()-86400000).toDateString();
-
+function rReport(){
+  const el=document.getElementById('v-report');
+  const fromVal=document.getElementById('r-from')?.value||'';
+  const toVal=document.getElementById('r-to')?.value||'';
   let h=`<div class="filter-bar">
     <div class="date-row">
-      <label>From</label><input id="r-from" type="date" value="${fromVal||''}">
-      <label>To</label><input id="r-to" type="date" value="${toVal||''}">
-      <button class="run-btn" onclick="runReport()">Go</button>
+      <label>From</label><input id="r-from" type="date" value="${fromVal}">
+      <label>To</label><input id="r-to" type="date" value="${toVal}">
     </div>
     <div class="filter-row">
-      <button class="filter-btn${reportFilter==='transfers'?' on':''}" data-f="transfers" onclick="setFilter('transfers')">Transfers only</button>
-      <button class="filter-btn${reportFilter==='coffee'?' on':''}" data-f="coffee" onclick="setFilter('coffee')">Coffee Bar only</button>
-      <button class="filter-btn${reportFilter==='all'?' on':''}" data-f="all" onclick="setFilter('all')">All orders</button>
+      <button class="filter-btn${reportFilter==='transfers'?' on':''}" data-f="transfers" onclick="setFilter('transfers')">Transfers</button>
+      <button class="filter-btn${reportFilter==='coffee'?' on':''}" data-f="coffee" onclick="setFilter('coffee')">Coffee Bar</button>
+      <button class="filter-btn${reportFilter==='all'?' on':''}" data-f="all" onclick="setFilter('all')">All</button>
+    </div>
+    <div class="btn-row">
+      <button class="run-btn" onclick="runReport()">Apply</button>
+      <button class="export-btn" onclick="exportExcel()">↓ Export Excel</button>
     </div>
   </div>`;
 
-  if(!filtered.length){
-    h+='<div class="empty-report">No orders match the selected filters.</div>';
-    el.innerHTML=h; return;
+  const filtered=getFiltered();
+  if(!filtered.length){h+='<div class="empty-report">No orders match the selected filters.</div>';el.innerHTML=h;return;}
+
+  // GL totals
+  const glTotals={};
+  filtered.forEach(([,o])=>{
+    if(o.status==='cancelled')return;
+    Object.values(o.items||{}).forEach(it=>{
+      if(it.s==='out')return;
+      const lt=lineTotal(it,it.qty,it.qtyType); if(!lt)return;
+      const k=it.glCode||'—';
+      if(!glTotals[k])glTotals[k]={name:it.glCat||'',total:0};
+      glTotals[k].total+=lt;
+    });
+  });
+
+  // Group by day
+  const byDay={};
+  filtered.forEach(([key,o])=>{const d=new Date(o.completedAt||o.createdAt).toDateString();if(!byDay[d])byDay[d]=[];byDay[d].push([key,o]);});
+  const sortedDays=Object.keys(byDay).sort((a,b)=>new Date(b)-new Date(a));
+
+  sortedDays.forEach(day=>{
+    const label=day===today()?'Today':day===new Date(Date.now()-86400000).toDateString()?'Yesterday':new Date(day).toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+    h+=`<div class="report-day">${label}</div>`;
+    byDay[day].forEach(([key,o])=>{
+      const isTr=o.isTransfer, cancelled=o.status==='cancelled';
+      const items=Object.entries(o.items||{});
+      const orderTotal=items.reduce((s,[,it])=>it.s!=='out'?s+lineTotal(it,it.qty,it.qtyType):s,0);
+      h+=`<div class="order-block${isTr?' transfer':''}${cancelled?' cancelled':''}">
+        <div class="ob-head">
+          <div class="ob-left">
+            <div class="ob-title">Order #${o.num} ${isTr?`<span class="transfer-badge">Transfer</span>`:''} ${o.adminEdit?`<span class="admin-edit-badge">edited</span>`:''}
+            ${cancelled?`<span style="font-size:10px;color:var(--red-txt)">CANCELLED</span>`:''}</div>
+            <div class="ob-meta">${fmt(o.createdAt)} · ${o.createdBy}${o.adminEdit?` · Note: ${o.adminEdit.note}`:''}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            ${orderTotal>0?`<span class="ob-total">${dollar(orderTotal)}</span>`:''}
+            <div class="ob-actions">
+              <button class="act-btn edit" onclick="openEditOrder('${key}')">Edit</button>
+              <button class="act-btn del" onclick="deleteOrder('${key}')">Delete</button>
+            </div>
+          </div>
+        </div>`;
+      items.forEach(([,it])=>{const lt=lineTotal(it,it.qty,it.qtyType);h+=`<div class="ob-row${it.s==='out'?' out':''}"><span class="ob-name">${it.name}</span><span class="ob-qty">${lineLabel(it.qty,it.qtyType,it)}</span><span class="ob-price">${it.s==='out'?'out':dollar(it.qtyType==='box'?it.boxPrice:it.unitPrice)}</span><span class="ob-total-cell">${it.s==='out'?'—':dollar(lt)}</span><span class="ob-gl">${it.glCode||''}</span></div>`;});
+      h+=`</div>`;
+    });
+  });
+
+  // GL Summary
+  if(Object.keys(glTotals).length){
+    const grand=Object.values(glTotals).reduce((s,v)=>s+v.total,0);
+    h+=`<div class="report-day">Summary by GL Code</div><div class="gl-summary"><div class="gl-summary-hd">GL Code Breakdown</div>`;
+    Object.entries(glTotals).sort(([a],[b])=>a.localeCompare(b)).forEach(([code,v])=>{h+=`<div class="gl-row"><span class="gl-code">${code}</span><span class="gl-name">${v.name}</span><span class="gl-total">${dollar(v.total)}</span></div>`;});
+    h+=`<div class="gl-grand"><span>Grand Total</span><span>${dollar(grand)}</span></div></div>`;
   }
+
+  el.innerHTML=h;
+}
+
+// ── DELETE ORDER ──
+window.deleteOrder=async function(key){
+  if(!confirm('Delete this order permanently? This cannot be undone.'))return;
+  await remove(ref(db,`units/bingo/orders/${key}`));
+};
+
+// ── EDIT ORDER ──
+window.openEditOrder=function(key){
+  const o=orders[key]; if(!o)return;
+  editingOrderKey=key;
+  editOrderItems=JSON.parse(JSON.stringify(o.items||{}));
+  document.getElementById('omodal-title').textContent=`Edit Order #${o.num}`;
+  document.getElementById('admin-note').value='';
+  renderEditOrderItems();
+  document.getElementById('order-modal').classList.remove('hidden');
+};
+
+function renderEditOrderItems(){
+  let h='';
+  Object.entries(editOrderItems).forEach(([iid,it])=>{
+    const hasBox=it.boxPrice>0||it.boxLabel;
+    h+=`<div class="edit-item-row" id="erow-${iid}">
+      <span class="ein">${it.name}</span>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <div class="eq-row">
+          <button class="eqb" onclick="editQty('${iid}',-1)">−</button>
+          <span class="eqn" id="eqn-${iid}">${it.qty}</span>
+          <button class="eqb" onclick="editQty('${iid}',1)">+</button>
+        </div>
+        ${hasBox?`<div class="type-toggle"><button class="${it.qtyType==='unit'?'on':''}" onclick="editType('${iid}','unit')" id="etunit-${iid}">${it.unitLabel||'each'}</button><button class="${it.qtyType==='box'?'on':''}" onclick="editType('${iid}','box')" id="etbox-${iid}">${it.boxLabel||'box'}</button></div>`:''}
+        <select class="status-sel" id="esel-${iid}" onchange="editStatus('${iid}',this.value)">
+          <option value="pending"${it.s==='pending'?' selected':''}>Pending</option>
+          <option value="done"${it.s==='done'?' selected':''}>Done</option>
+          <option value="out"${it.s==='out'?' selected':''}>Out</option>
+        </select>
+      </div>
+      <button class="remove-item-btn" onclick="removeEditItem('${iid}')">✕</button>
+    </div>`;
+  });
+  if(!h)h='<div style="padding:12px 0;color:var(--ink3);font-size:13px;text-align:center">No items</div>';
+  document.getElementById('order-modal-items').innerHTML=h;
+}
+
+window.editQty=(iid,d)=>{if(!editOrderItems[iid])return;editOrderItems[iid].qty=Math.max(1,editOrderItems[iid].qty+d);document.getElementById('eqn-'+iid).textContent=editOrderItems[iid].qty;};
+window.editType=(iid,t)=>{if(!editOrderItems[iid])return;editOrderItems[iid].qtyType=t;document.getElementById('etunit-'+iid)?.classList.toggle('on',t==='unit');document.getElementById('etbox-'+iid)?.classList.toggle('on',t==='box');};
+window.editStatus=(iid,s)=>{if(!editOrderItems[iid])return;editOrderItems[iid].s=s;};
+window.removeEditItem=iid=>{delete editOrderItems[iid];renderEditOrderItems();};
+
+window.closeOrderModal=()=>document.getElementById('order-modal').classList.add('hidden');
+
+window.saveOrderEdit=async function(){
+  const note=document.getElementById('admin-note').value.trim();
+  if(!note){alert('Please add a note explaining the reason for this edit.');return;}
+  const upd={};
+  upd[`units/bingo/orders/${editingOrderKey}/items`]=editOrderItems;
+  upd[`units/bingo/orders/${editingOrderKey}/adminEdit`]={editedAt:Date.now(),note};
+  // Check if all resolved
+  const allDone=Object.values(editOrderItems).every(v=>v.s!=='pending');
+  if(allDone){upd[`units/bingo/orders/${editingOrderKey}/status`]='complete';upd[`units/bingo/orders/${editingOrderKey}/completedAt`]=Date.now();}
+  await update(ref(db),upd);
+  closeOrderModal();
+};
+
+// ── EXPORT EXCEL ──
+window.exportExcel=function(){
+  const filtered=getFiltered();
+  if(!filtered.length){alert('No data to export.');return;}
+
+  const rows=[];
+  rows.push(['Date','Time','Order #','Station','Associate','Item','Qty','Unit','Unit Price','Total','GL Code','GL Category','Status']);
+  filtered.forEach(([,o])=>{
+    const isTr=o.isTransfer;
+    Object.values(o.items||{}).forEach(it=>{
+      const price=it.qtyType==='box'?it.boxPrice:it.unitPrice;
+      const lt=lineTotal(it,it.qty,it.qtyType);
+      rows.push([
+        fmtDate(o.createdAt), fmt(o.createdAt),
+        `#${o.num}`, isTr?'Tea Bar':'Coffee Bar', o.createdBy,
+        it.name, it.qty, it.qtyType==='box'?it.boxLabel||'box':it.unitLabel||'each',
+        price||0, it.s==='out'?0:lt,
+        it.glCode||'', it.glCat||'', it.s
+      ]);
+    });
+  });
 
   // GL summary
   const glTotals={};
@@ -288,151 +438,64 @@ function rReport(){
     if(o.status==='cancelled')return;
     Object.values(o.items||{}).forEach(it=>{
       if(it.s==='out')return;
-      const lt=lineTotal(it,it.qty,it.qtyType);
-      if(!lt)return;
-      const key=it.glCode||'Unknown';
-      if(!glTotals[key])glTotals[key]={name:it.glCat||'',total:0};
-      glTotals[key].total+=lt;
+      const lt=lineTotal(it,it.qty,it.qtyType); if(!lt)return;
+      const k=it.glCode||'—';
+      if(!glTotals[k])glTotals[k]={name:it.glCat||'',total:0};
+      glTotals[k].total+=lt;
     });
   });
 
-  // Orders list
-  h+=`<div class="report-section">${filtered.length} order${filtered.length>1?'s':''}</div>`;
-  filtered.forEach(([key,o])=>{
-    const isTr=o.isTransfer,cancelled=o.status==='cancelled';
-    const items=Object.entries(o.items||{});
-    const orderTotal=items.reduce((s,[,it])=>it.s!=='out'?s+lineTotal(it,it.qty,it.qtyType):s,0);
-    const dateStr=new Date(o.completedAt||o.createdAt).toDateString();
-    const dayLabel=dateStr===today?'Today':dateStr===yesterday?'Yesterday':fmtDate(o.completedAt||o.createdAt);
-    h+=`<div class="order-block${isTr?' transfer':''}${cancelled?' cancelled':''}">
-      <div class="ob-head">
-        <div><div class="ob-title">Order #${o.num}${isTr?` <span class="transfer-badge">Transfer</span>`:''}</div>
-        <div class="ob-meta">${dayLabel} · ${fmt(o.createdAt)} · ${o.createdBy}${cancelled?' · CANCELLED':''}</div></div>
-        ${orderTotal>0?`<div class="ob-total">${dollar(orderTotal)}</div>`:''}
-      </div>`;
-    items.forEach(([,it])=>{
-      const lt=lineTotal(it,it.qty,it.qtyType);
-      h+=`<div class="ob-row${it.s==='out'?' out':''}">
-        <span class="ob-name">${it.name}</span>
-        <span class="ob-qty">${lineLabel(it.qty,it.qtyType,it)}</span>
-        <span class="ob-price">${it.s==='out'?'out':dollar(it.qtyType==='box'?it.boxPrice:it.unitPrice)}</span>
-        <span class="ob-total-cell">${it.s==='out'?'—':dollar(lt)}</span>
-        <span class="ob-gl">${it.glCode||''}</span>
-      </div>`;
-    });
-    h+=`</div>`;
-  });
+  const summaryRows=[['GL Code','GL Category','Total']];
+  Object.entries(glTotals).sort(([a],[b])=>a.localeCompare(b)).forEach(([code,v])=>summaryRows.push([code,v.name,v.total]));
+  const grand=Object.values(glTotals).reduce((s,v)=>s+v.total,0);
+  summaryRows.push(['','Grand Total',grand]);
 
-  // GL Summary table
-  if(Object.keys(glTotals).length){
-    const grandTotal=Object.values(glTotals).reduce((s,v)=>s+v.total,0);
-    h+=`<div class="report-section">Summary by GL Code</div><div class="gl-summary"><div class="gl-summary-hd">GL Summary</div>`;
-    Object.entries(glTotals).sort(([a],[b])=>a.localeCompare(b)).forEach(([code,v])=>{
-      h+=`<div class="gl-row"><span class="gl-row-code">${code}</span><span class="gl-row-name">${v.name}</span><span class="gl-row-total">${dollar(v.total)}</span></div>`;
-    });
-    h+=`<div class="gl-grand"><span>Total</span><span>${dollar(grandTotal)}</span></div></div>`;
-  }
+  const wb=XLSX.utils.book_new();
+  const ws1=XLSX.utils.aoa_to_sheet(rows);
+  ws1['!cols']=[{wch:12},{wch:8},{wch:8},{wch:12},{wch:12},{wch:24},{wch:6},{wch:8},{wch:10},{wch:10},{wch:8},{wch:18},{wch:8}];
+  XLSX.utils.book_append_sheet(wb,ws1,'Orders');
+  const ws2=XLSX.utils.aoa_to_sheet(summaryRows);
+  ws2['!cols']=[{wch:10},{wch:22},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ws2,'GL Summary');
 
-  el.innerHTML=h;
-}
+  const fromVal=document.getElementById('r-from')?.value;
+  const toVal=document.getElementById('r-to')?.value;
+  const fname=`bingo-transfers${fromVal?'-'+fromVal:''}${toVal?'_'+toVal:''}.xlsx`;
+  XLSX.writeFile(wb,fname);
+};
 
 // ── ITEMS ──
+window.itemSearch='';
+window.onItemSearch=function(v){itemSearch=v;rItems();};
+
 function rItems(){
   const el=document.getElementById('v-items');
-  const items=Object.entries(dbItems).sort(([,a],[,b])=>a.name.localeCompare(b.name));
-  let h=`<div class="items-header"><span>${items.length} items</span><button class="add-item-btn" onclick="openAddItem()">+ Add item</button></div>`;
+  const q=itemSearch.toLowerCase();
+  let items=Object.entries(dbItems).filter(([,it])=>{
+    if(!q)return true;
+    return it.name.toLowerCase().includes(q)||(it.gl||'').includes(q)||(it.glCat||'').toLowerCase().includes(q);
+  }).sort(([,a],[,b])=>a.name.localeCompare(b.name));
+
+  let h=`<div class="search-bar"><input type="text" placeholder="Search by name or GL code..." value="${itemSearch}" oninput="onItemSearch(this.value)"></div>
+  <div class="items-header"><span class="items-count">${items.length} item${items.length!==1?'s':''}</span><button class="add-item-btn" onclick="openAddItem()">+ Add item</button></div>`;
   items.forEach(([id,it])=>{
     const priceStr=[it.unitPrice>0?`${dollar(it.unitPrice)}/${it.unitLabel}`:'',it.boxPrice>0?`${dollar(it.boxPrice)}/${it.boxLabel}`:''].filter(Boolean).join(' · ')||'no price';
-    h+=`<div class="item-list-row" onclick="openEditItem('${id}')">
-      <div class="il-info">
-        <div class="il-name">${it.name}</div>
-        <div class="il-meta">${it.cat} · ${priceStr}</div>
-      </div>
-      <div class="il-gl">${it.gl||''}</div>
-      <span class="edit-icon">›</span>
-    </div>`;
+    h+=`<div class="item-list-row" onclick="openEditItem('${id}')"><div class="il-info"><div class="il-name">${it.name}</div><div class="il-meta">${it.cat||'—'} · ${priceStr}</div></div><div class="il-gl">${it.gl||''}</div><span class="edit-icon">›</span></div>`;
   });
   el.innerHTML=h;
 }
 
-// ── ITEM MODAL ──
-window.openAddItem = function(){
-  editingItemId=null;
-  document.getElementById('modal-title').textContent='Add Item';
-  document.getElementById('modal-delete-btn').classList.add('hidden');
-  ['m-name','m-cat','m-gl','m-glcat','m-ulabel','m-blabel'].forEach(id=>document.getElementById(id).value='');
-  ['m-uprice','m-bprice'].forEach(id=>document.getElementById(id).value='0');
-  document.getElementById('item-modal').classList.remove('hidden');
-};
-
-window.openEditItem = function(id){
-  editingItemId=id;
-  const it=dbItems[id]; if(!it)return;
-  document.getElementById('modal-title').textContent='Edit Item';
-  document.getElementById('modal-delete-btn').classList.remove('hidden');
-  document.getElementById('m-name').value=it.name||'';
-  document.getElementById('m-cat').value=it.cat||'';
-  document.getElementById('m-gl').value=it.gl||'';
-  document.getElementById('m-glcat').value=it.glCat||'';
-  document.getElementById('m-ulabel').value=it.unitLabel||'';
-  document.getElementById('m-uprice').value=it.unitPrice||0;
-  document.getElementById('m-blabel').value=it.boxLabel||'';
-  document.getElementById('m-bprice').value=it.boxPrice||0;
-  document.getElementById('item-modal').classList.remove('hidden');
-};
-
-window.closeModal = ()=>document.getElementById('item-modal').classList.add('hidden');
-
-window.saveItem = async function(){
-  const name=document.getElementById('m-name').value.trim();
-  if(!name){alert('Name is required.');return;}
-  const item={
-    name, cat:document.getElementById('m-cat').value.trim(),
-    gl:document.getElementById('m-gl').value.trim(),
-    glCat:document.getElementById('m-glcat').value.trim(),
-    unitLabel:document.getElementById('m-ulabel').value.trim()||'each',
-    unitPrice:parseFloat(document.getElementById('m-uprice').value)||0,
-    boxLabel:document.getElementById('m-blabel').value.trim()||'case',
-    boxPrice:parseFloat(document.getElementById('m-bprice').value)||0,
-  };
-  const id=editingItemId||(name.toLowerCase().replace(/[^a-z0-9]/g,'_')+'_'+Date.now());
-  await set(ref(db,`units/bingo/items/${id}`),{...item,id});
-  closeModal();
-};
-
-window.deleteItem = async function(){
-  if(!editingItemId)return;
-  if(!confirm('Delete this item? It will no longer appear in new orders.'))return;
-  await remove(ref(db,`units/bingo/items/${editingItemId}`));
-  closeModal();
-};
+window.openAddItem=()=>{editingItemId=null;document.getElementById('imodal-title').textContent='Add Item';document.getElementById('item-del-btn').classList.add('hidden');['m-name','m-cat','m-gl','m-glcat','m-ulabel','m-blabel'].forEach(id=>document.getElementById(id).value='');['m-uprice','m-bprice'].forEach(id=>document.getElementById(id).value='0');document.getElementById('item-modal').classList.remove('hidden');};
+window.openEditItem=id=>{editingItemId=id;const it=dbItems[id];if(!it)return;document.getElementById('imodal-title').textContent='Edit Item';document.getElementById('item-del-btn').classList.remove('hidden');document.getElementById('m-name').value=it.name||'';document.getElementById('m-cat').value=it.cat||'';document.getElementById('m-gl').value=it.gl||'';document.getElementById('m-glcat').value=it.glCat||'';document.getElementById('m-ulabel').value=it.unitLabel||'';document.getElementById('m-uprice').value=it.unitPrice||0;document.getElementById('m-blabel').value=it.boxLabel||'';document.getElementById('m-bprice').value=it.boxPrice||0;document.getElementById('item-modal').classList.remove('hidden');};
+window.closeItemModal=()=>document.getElementById('item-modal').classList.add('hidden');
+window.saveItem=async function(){const name=document.getElementById('m-name').value.trim();if(!name){alert('Name is required.');return;}const item={name,cat:document.getElementById('m-cat').value.trim(),gl:document.getElementById('m-gl').value.trim(),glCat:document.getElementById('m-glcat').value.trim(),unitLabel:document.getElementById('m-ulabel').value.trim()||'each',unitPrice:parseFloat(document.getElementById('m-uprice').value)||0,boxLabel:document.getElementById('m-blabel').value.trim()||'case',boxPrice:parseFloat(document.getElementById('m-bprice').value)||0};const id=editingItemId||(name.toLowerCase().replace(/[^a-z0-9]/g,'_')+'_'+Date.now());await set(ref(db,`units/bingo/items/${id}`),{...item,id});closeItemModal();};
+window.deleteItem=async function(){if(!editingItemId)return;if(!confirm('Delete this item?'))return;await remove(ref(db,`units/bingo/items/${editingItemId}`));closeItemModal();};
 
 // ── SETTINGS ──
 function rSettings(){
-  document.getElementById('v-settings').innerHTML=`
-    <div class="settings-section">
-      <div class="settings-title">Change Admin PIN</div>
-      <div class="settings-desc">Current PIN is used to access this admin panel. Choose something only supervisors know.</div>
-      <div class="pin-change-card">
-        <div class="field"><label>New PIN</label><input id="new-pin" type="password" inputmode="numeric" maxlength="6" placeholder="Enter new PIN"></div>
-        <div class="field"><label>Confirm PIN</label><input id="confirm-pin" type="password" inputmode="numeric" maxlength="6" placeholder="Repeat new PIN"></div>
-        <button class="btn-go" onclick="changePin()">Update PIN</button>
-        <div id="pin-msg" style="font-size:13px;text-align:center"></div>
-      </div>
-    </div>`;
+  document.getElementById('v-settings').innerHTML=`<div class="settings-section"><div class="settings-title">Change Admin PIN</div><div class="pin-change-card"><div class="field"><label>New PIN</label><input id="new-pin" type="password" inputmode="numeric" maxlength="6" placeholder="Enter new PIN"></div><div class="field"><label>Confirm PIN</label><input id="confirm-pin" type="password" inputmode="numeric" maxlength="6" placeholder="Repeat new PIN"></div><button class="btn-primary" onclick="changePin()">Update PIN</button><div id="pin-msg" class="pin-msg"></div></div></div>`;
 }
-
-window.changePin = async function(){
-  const n=document.getElementById('new-pin').value;
-  const c=document.getElementById('confirm-pin').value;
-  const msg=document.getElementById('pin-msg');
-  if(n.length<4){msg.style.color='var(--red-txt)';msg.textContent='PIN must be at least 4 digits.';return;}
-  if(n!==c){msg.style.color='var(--red-txt)';msg.textContent='PINs do not match.';return;}
-  await set(ref(db,'units/bingo/config/adminPin'),n);
-  msg.style.color='var(--green-txt)';msg.textContent='PIN updated successfully.';
-  document.getElementById('new-pin').value='';
-  document.getElementById('confirm-pin').value='';
-};
+window.changePin=async function(){const n=document.getElementById('new-pin').value,c=document.getElementById('confirm-pin').value,msg=document.getElementById('pin-msg');if(n.length<4){msg.style.color='var(--red-txt)';msg.textContent='PIN must be at least 4 digits.';return;}if(n!==c){msg.style.color='var(--red-txt)';msg.textContent='PINs do not match.';return;}await set(ref(db,'units/bingo/config/adminPin'),n);msg.style.color='var(--green-txt)';msg.textContent='PIN updated.';document.getElementById('new-pin').value='';document.getElementById('confirm-pin').value='';};
 </script>
 </body>
 </html>
