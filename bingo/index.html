@@ -47,7 +47,12 @@ input{font-family:inherit}
 .app-title{font-size:20px;font-weight:600;color:var(--ink);flex:1}
 .station-pill{font-size:11px;font-weight:600;border-radius:99px;padding:4px 10px;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .station-pill.coffee{background:var(--bg2);color:var(--ink2);border:1px solid var(--bd2)}
-.station-pill.tea{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd)}
+.station-btn.transfer-btn .st-name{color:#1a1a1a}
+.station-btn.transfer-btn .st-desc{color:#555}
+.transfer-card .oc-title,.transfer-card .oc-by{color:#1a1a1a}
+.transfer-card .oc-meta{color:#555}
+.transfer-hcard .hc-num,.transfer-hcard .hc-meta{color:#1a1a1a}
+.station-pill.tea{background:var(--amber-bg);color:#7a4e0a;border:1px solid var(--amber-bd)}
 .name-tag{font-size:12px;color:var(--ink3);background:var(--bg2);border:1px solid var(--bd);border-radius:99px;padding:4px 10px;cursor:pointer;flex-shrink:0}
 
 .tabs{display:flex;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--bg)}
@@ -440,8 +445,7 @@ function rBuild(){
     if(open){
       items.sort((a,b)=>a.name.localeCompare(b.name)).forEach(it=>{
         const c=cart[it.id], sel=!!(c?.qty>0);
-        const priceHint=c?.type==='box'&&it.boxPrice>0?dollar(it.boxPrice)+'/'+it.boxLabel:it.unitPrice>0?dollar(it.unitPrice)+'/'+it.unitLabel:'';
-        h+=`<div class="item-row${sel?' in-cart':''}"><div class="item-info"><div class="item-name">${it.name}</div>${priceHint||sel?`<div class="item-price">${sel?(c.type==='box'&&it.boxPrice>0?dollar(it.boxPrice)+'/'+it.boxLabel:it.unitPrice>0?dollar(it.unitPrice)+'/'+it.unitLabel:'no price set'):(it.unitPrice>0?dollar(it.unitPrice)+'/'+it.unitLabel:'')}</div>`:''}</div>`;
+        h+=`<div class="item-row${sel?' in-cart':''}"><div class="item-info"><div class="item-name">${it.name}</div></div>`;
         if(sel){
           const hasBox=it.boxPrice>0||it.boxLabel;
           h+=`<div class="cart-ctrl"><div class="qty-row"><button class="qb" onclick="chq('${it.id}',-1)">−</button><span class="qn">${c.qty}</span><button class="qb" onclick="chq('${it.id}',1)">+</button></div>`;
