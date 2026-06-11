@@ -412,6 +412,8 @@ window.saveOrderEdit=async function(){
 
 // ── EXPORT EXCEL ──
 window.exportExcel=function(){
+  const XLSX=window.XLSX;
+  if(!XLSX){alert('Export library not loaded yet. Please try again in a moment.');return;}
   const filtered=getFiltered();
   if(!filtered.length){alert('No data to export.');return;}
 
