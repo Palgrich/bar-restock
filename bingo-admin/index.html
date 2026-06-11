@@ -45,6 +45,8 @@ input,select{font-family:inherit}
 .filter-row{display:flex;gap:8px}
 .filter-btn{flex:1;padding:8px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg);color:var(--ink2);font-size:12px;font-weight:500}
 .filter-btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.preset-btn{flex:1;padding:7px 4px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg);color:var(--ink2);font-size:11px;font-weight:500;white-space:nowrap}
+.preset-btn:active{background:var(--bg3)}
 .run-btn{padding:8px 14px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;border:none;white-space:nowrap}
 .export-btn{padding:8px 14px;border-radius:var(--rs);background:var(--green-bg);color:var(--green-txt);font-size:13px;font-weight:500;border:1px solid var(--green-txt);white-space:nowrap}
 .btn-row{display:flex;gap:8px}
@@ -251,6 +253,18 @@ function lineLabel(qty,type,it){return qty+' '+(type==='box'?it.boxLabel||'box':
 function today(){return new Date().toDateString()}
 
 // ── REPORT ──
+window.setPreset=function(p){
+  const fmt=d=>d.toISOString().split('T')[0];
+  const now=new Date(); now.setHours(0,0,0,0);
+  let from,to;
+  if(p==='today'){from=to=fmt(now);}
+  else if(p==='yesterday'){const y=new Date(now);y.setDate(y.getDate()-1);from=to=fmt(y);}
+  else if(p==='week'){const d=new Date(now);d.setDate(d.getDate()-d.getDay());from=fmt(d);to=fmt(now);}
+  else if(p==='month'){const d=new Date(now.getFullYear(),now.getMonth(),1);from=fmt(d);to=fmt(now);}
+  document.getElementById('r-from').value=from;
+  document.getElementById('r-to').value=to;
+  rReport();
+};
 window.setFilter=f=>{reportFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('on',b.dataset.f===f));runReport();};
 window.runReport=()=>rReport();
 
@@ -273,6 +287,12 @@ function rReport(){
   const fromVal=document.getElementById('r-from')?.value||'';
   const toVal=document.getElementById('r-to')?.value||'';
   let h=`<div class="filter-bar">
+    <div class="filter-row">
+      <button class="preset-btn" onclick="setPreset('today')">Today</button>
+      <button class="preset-btn" onclick="setPreset('yesterday')">Yesterday</button>
+      <button class="preset-btn" onclick="setPreset('week')">This week</button>
+      <button class="preset-btn" onclick="setPreset('month')">This month</button>
+    </div>
     <div class="date-row">
       <label>From</label><input id="r-from" type="date" value="${fromVal}">
       <label>To</label><input id="r-to" type="date" value="${toVal}">
