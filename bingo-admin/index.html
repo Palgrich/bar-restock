@@ -49,6 +49,7 @@ input,select{font-family:inherit}
 .run-btn{padding:8px 14px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;border:none;white-space:nowrap}
 .export-btn{padding:8px 14px;border-radius:var(--rs);background:var(--green-bg);color:var(--green-txt);font-size:13px;font-weight:500;border:1px solid var(--green-txt);white-space:nowrap}
 .export-btn.print{background:var(--bg2);color:var(--ink2);border-color:var(--bd2)}
+.export-btn.new-transfer{background:var(--amber-bg);color:#7a4e0a;border-color:var(--amber-bd)}
 .btn-row{display:flex;gap:8px}
 
 .report-day{padding:10px 16px 4px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
@@ -129,6 +130,16 @@ input,select{font-family:inherit}
 .status-sel{font-size:11px;padding:4px 6px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg2);color:var(--ink)}
 .remove-item-btn{width:24px;height:24px;border-radius:50%;background:var(--red-bg);color:var(--red-txt);border:none;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 
+/* NEW TRANSFER PICKER */
+.nt-pick-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--bd);font-size:13px}
+.nt-pick-row:last-child{border-bottom:none}
+.nt-pick-row:active{background:var(--bg2)}
+.nt-pick-add{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:16px;border:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
+.nt-cart-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px}
+.nt-cart-row:last-child{border-bottom:none}
+.nt-cart-name{flex:1}
+.nt-empty{font-size:13px;color:var(--ink3);text-align:center;padding:10px 0}
+
 /* SETTINGS */
 .settings-section{padding:20px 16px;display:flex;flex-direction:column;gap:16px}
 .settings-title{font-size:16px;font-weight:600;color:var(--ink)}
@@ -204,9 +215,27 @@ input,select{font-family:inherit}
   </div>
 </div>
 
+<!-- NEW TRANSFER MODAL -->
+<div id="new-transfer-modal" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-title">New Transfer — Coffee Bar → Tea Bar</div>
+    <div class="field"><label>Logged by (employee name)</label><input id="nt-employee" type="text" placeholder="e.g. Alex"></div>
+    <div class="field"><label>Date</label><input id="nt-date" type="date"></div>
+    <div class="field"><label>Add item</label><input id="nt-search" type="text" placeholder="Search items..." oninput="renderNtPicker()"></div>
+    <div id="nt-picker" style="max-height:160px;overflow-y:auto;border:1px solid var(--bd);border-radius:var(--rs)"></div>
+    <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-top:4px">Items in this transfer</div>
+    <div id="nt-cart"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel-m" onclick="closeNewTransfer()">Cancel</button>
+      <button class="btn-save" onclick="saveNewTransfer()">Create Transfer</button>
+    </div>
+  </div>
+</div>
+
+
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getDatabase, ref, set, get, onValue, update, remove }
+import { getDatabase, ref, set, get, onValue, update, remove, push, runTransaction }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
 const FB={apiKey:"AIzaSyBlhkq7t3KlDYwZcXUclF_0AqWYYdnlou8",authDomain:"compass-bar-448c0.firebaseapp.com",databaseURL:"https://compass-bar-448c0-default-rtdb.firebaseio.com",projectId:"compass-bar-448c0",storageBucket:"compass-bar-448c0.firebasestorage.app",messagingSenderId:"281477138732",appId:"1:281477138732:web:c2c0fffd5bd060f47ec489"};
@@ -216,6 +245,9 @@ const db=getDatabase(fbApp);
 const ordRef=ref(db,'units/bingo/orders');
 const itmRef=ref(db,'units/bingo/items');
 const cfgRef=ref(db,'units/bingo/config');
+const counterRef=ref(db,'units/bingo/counter');
+
+let ntCart={};
 
 let orders={}, dbItems={}, config={}, curTab='report', reportFilter='transfers';
 let editingItemId=null, editingOrderKey=null, editOrderItems={};
@@ -271,7 +303,7 @@ window.runReport=()=>rReport();
 function getFiltered(){
   const fromVal=document.getElementById('r-from')?.value;
   const toVal=document.getElementById('r-to')?.value;
-  const fromTs=fromVal?new Date(fromVal).getTime():0;
+  const fromTs=fromVal?new Date(fromVal+'T00:00:00').getTime():0;
   const toTs=toVal?new Date(toVal+'T23:59:59').getTime():Date.now()+86400000;
   return Object.entries(orders).filter(([,o])=>{
     const ts=o.completedAt||o.createdAt;
@@ -306,6 +338,7 @@ function rReport(){
       <button class="run-btn" onclick="runReport()">Apply</button>
       <button class="export-btn" onclick="exportExcel()">↓ CSV</button>
       <button class="export-btn print" onclick="exportPrint()">🖨 PDF</button>
+      <button class="export-btn new-transfer" onclick="openNewTransfer()">+ New Transfer</button>
     </div>
   </div>`;
 
@@ -444,31 +477,31 @@ window.exportPrint=function(){
   let rows='';
 
   filtered.forEach(([,o])=>{
+    if(o.status==='cancelled')return; // skip cancelled orders entirely
     const isTr=o.isTransfer;
     const fromUnit=isTr?'Coffee Bar':'Coffee Bar';
     const toUnit=isTr?'Tea Bar':'Coffee Bar';
     const dateStr=new Date(o.createdAt).toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'2-digit'});
-    const items=Object.values(o.items||{});
-    const cancelled=o.status==='cancelled';
+    const items=Object.values(o.items||{}).filter(it=>it.s!=='out'); // skip out items
+    if(!items.length)return;
     items.forEach((it,idx)=>{
       const price=(it.qtyType==='box'?it.boxPrice:it.unitPrice)||0;
-      const lt=it.s==='out'?0:lineTotal(it,it.qty,it.qtyType);
+      const lt=lineTotal(it,it.qty,it.qtyType);
       const unitLabel=it.qtyType==='box'?it.boxLabel||'box':it.unitLabel||'each';
-      const style=it.s==='out'?'text-decoration:line-through;color:#a32d2d;':'';
-      rows+=`<tr${cancelled?' class="cancelled"':''}>
+      rows+=`<tr>
         <td>${idx===0?dateStr:''}</td>
         <td>${idx===0?fromUnit:''}</td>
         <td>${idx===0?toUnit:''}</td>
-        <td style="${style}">${it.name}</td>
+        <td>${it.name}</td>
         <td style="text-align:center">${it.qty}</td>
         <td style="text-align:center">${unitLabel}</td>
         <td>${idx===0?o.createdBy:''}</td>
         <td style="text-align:right">${price>0?'$'+price.toFixed(2):''}</td>
-        <td style="text-align:right">${it.s==='out'?'Out':lt>0?'$'+lt.toFixed(2):''}</td>
+        <td style="text-align:right">${lt>0?'$'+lt.toFixed(2):''}</td>
         <td style="text-align:center">${it.glCode||''}</td>
         <td></td>
       </tr>`;
-      if(!cancelled&&it.s!=='out'&&lt>0){
+      if(lt>0){
         const k=it.glCode||'—';
         if(!glTotals[k])glTotals[k]={name:it.glCat||'',total:0};
         glTotals[k].total+=lt;
@@ -560,14 +593,16 @@ window.exportExcel=function(){
   const glTotals={};
 
   filtered.forEach(([,o])=>{
+    if(o.status==='cancelled')return; // skip cancelled orders entirely
     const isTr=o.isTransfer;
     const fromUnit=isTr?'Coffee Bar':'Coffee Bar';
     const toUnit=isTr?'Tea Bar':'Coffee Bar';
     const dateStr=new Date(o.createdAt).toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'2-digit'});
-    const items=Object.values(o.items||{});
+    const items=Object.values(o.items||{}).filter(it=>it.s!=='out'); // skip out items
+    if(!items.length)return;
     items.forEach((it,idx)=>{
       const price=(it.qtyType==='box'?it.boxPrice:it.unitPrice)||0;
-      const lt=it.s==='out'?0:lineTotal(it,it.qty,it.qtyType);
+      const lt=lineTotal(it,it.qty,it.qtyType);
       const unitLabel=it.qtyType==='box'?it.boxLabel||'box':it.unitLabel||'each';
       csv+=row(
         idx===0?dateStr:'',
@@ -583,8 +618,7 @@ window.exportExcel=function(){
         it.glCat||'',
         ''
       );
-      // Accumulate GL totals (only done items with price)
-      if(o.status!=='cancelled'&&it.s!=='out'&&lt>0){
+      if(lt>0){
         const k=it.glCode||'—';
         if(!glTotals[k])glTotals[k]={name:it.glCat||'',total:0};
         glTotals[k].total+=lt;
@@ -613,6 +647,92 @@ window.exportExcel=function(){
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+};
+
+// ── NEW TRANSFER (admin-created) ──
+window.openNewTransfer=function(){
+  ntCart={};
+  document.getElementById('nt-employee').value='';
+  document.getElementById('nt-search').value='';
+  const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+  document.getElementById('nt-date').value=d.toISOString().split('T')[0];
+  renderNtPicker();
+  renderNtCart();
+  document.getElementById('new-transfer-modal').classList.remove('hidden');
+};
+window.closeNewTransfer=()=>document.getElementById('new-transfer-modal').classList.add('hidden');
+
+window.renderNtPicker=function(){
+  const q=(document.getElementById('nt-search').value||'').toLowerCase();
+  const el=document.getElementById('nt-picker');
+  let items=Object.entries(dbItems);
+  if(q) items=items.filter(([,it])=>it.name.toLowerCase().includes(q));
+  items=items.sort(([,a],[,b])=>a.name.localeCompare(b.name)).slice(0,30);
+  if(!items.length){el.innerHTML='<div class="nt-empty">No items found</div>';return;}
+  el.innerHTML=items.map(([id,it])=>`<div class="nt-pick-row"><span>${it.name}</span><button class="nt-pick-add" onclick="ntAdd('${id}')">+</button></div>`).join('');
+};
+
+window.ntAdd=function(id){
+  if(!ntCart[id]) ntCart[id]={qty:1,type:'unit'};
+  else ntCart[id].qty++;
+  renderNtCart();
+};
+window.ntChq=function(id,d){
+  if(!ntCart[id])return;
+  ntCart[id].qty=Math.max(0,ntCart[id].qty+d);
+  if(!ntCart[id].qty) delete ntCart[id];
+  renderNtCart();
+};
+window.ntSetType=function(id,t){
+  if(!ntCart[id])return;
+  ntCart[id].type=t;
+  renderNtCart();
+};
+
+function renderNtCart(){
+  const el=document.getElementById('nt-cart');
+  const ids=Object.keys(ntCart);
+  if(!ids.length){el.innerHTML='<div class="nt-empty">No items added yet</div>';return;}
+  el.innerHTML=ids.map(id=>{
+    const it=dbItems[id]; if(!it)return'';
+    const c=ntCart[id];
+    const hasBox=it.boxPrice>0||it.boxLabel;
+    return `<div class="nt-cart-row">
+      <span class="nt-cart-name">${it.name}</span>
+      <div class="eq-row"><button class="eqb" onclick="ntChq('${id}',-1)">−</button><span class="eqn">${c.qty}</span><button class="eqb" onclick="ntChq('${id}',1)">+</button></div>
+      ${hasBox?`<div class="type-toggle"><button class="${c.type==='unit'?'on':''}" onclick="ntSetType('${id}','unit')">${it.unitLabel||'each'}</button><button class="${c.type==='box'?'on':''}" onclick="ntSetType('${id}','box')">${it.boxLabel||'box'}</button></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+window.saveNewTransfer=async function(){
+  const employee=document.getElementById('nt-employee').value.trim();
+  if(!employee){alert('Please enter the employee name.');return;}
+  const ids=Object.keys(ntCart);
+  if(!ids.length){alert('Add at least one item.');return;}
+  const dateVal=document.getElementById('nt-date').value;
+  const ts=dateVal?new Date(dateVal+'T12:00:00').getTime():Date.now();
+  const dateStr=dateVal?new Date(dateVal+'T12:00:00').toDateString():today();
+
+  let num=1;
+  try{
+    await runTransaction(counterRef,cur=>{if(!cur||cur.date!==dateStr)return{date:dateStr,num:1};return{date:cur.date,num:cur.num+1};});
+    const s=await get(counterRef); num=s.val()?.num||1;
+  }catch{}
+
+  const items={};
+  ids.forEach(id=>{
+    const it=dbItems[id]; const c=ntCart[id];
+    items[id]={name:it.name,qty:c.qty,qtyType:c.type,unitLabel:it.unitLabel,unitPrice:it.unitPrice,boxLabel:it.boxLabel,boxPrice:it.boxPrice,glCode:it.gl,glCat:it.glCat,s:'done'};
+  });
+
+  await set(push(ordRef),{
+    num, createdAt:ts, createdBy:employee, station:'tea', isTransfer:true,
+    date:dateStr, status:'complete', completedAt:ts, items,
+    adminEdit:{editedAt:Date.now(),note:'Created by supervisor via Admin panel'}
+  });
+
+  closeNewTransfer();
 };
 
 // ── ITEMS ──
