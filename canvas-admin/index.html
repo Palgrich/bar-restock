@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Canvas Admin</title>
+<style>
+:root{--ink:#111;--ink2:#555;--ink3:#999;--bg:#fff;--bg2:#f6f6f6;--bg3:#ededed;--bd:rgba(0,0,0,.10);--bd2:rgba(0,0,0,.18);--green-bg:#eaf3de;--green-txt:#2d5a0e;--red-bg:#fceaea;--red-txt:#a32d2d;--amber:#b87215;--amber-bg:#fef3e2;--amber-bd:#f5c87a;--r:12px;--rs:8px;}
+@media(prefers-color-scheme:dark){:root{--ink:#f0f0f0;--ink2:#aaa;--ink3:#666;--bg:#141414;--bg2:#1e1e1e;--bg3:#2a2a2a;--bd:rgba(255,255,255,.1);--bd2:rgba(255,255,255,.2);}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--ink)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px}
+.hidden{display:none!important}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit}
+
+#pin-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:16px}
+.pin-logo{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.pin-title{font-size:22px;font-weight:600;color:var(--ink)}
+.pin-card{width:100%;max-width:300px;display:flex;flex-direction:column;gap:12px}
+.pin-card input{width:100%;padding:14px 16px;border-radius:var(--rs);border:1.5px solid var(--bd2);background:var(--bg2);color:var(--ink);font-size:24px;letter-spacing:.2em;text-align:center;outline:none}
+.pin-card input:focus{border-color:var(--ink)}
+.pin-err{font-size:13px;color:var(--red-txt);text-align:center}
+.btn-primary{width:100%;padding:14px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:15px;font-weight:500;border:none}
+.btn-primary:active{opacity:.8}
+
+#app{display:flex;flex-direction:column;height:100vh}
+.header{padding:calc(env(safe-area-inset-top,0px)+14px) 16px 10px;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--bg)}
+.brand{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:2px}
+.app-title{font-size:20px;font-weight:600;color:var(--ink)}
+.tabs{display:flex;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--bg)}
+.tab{flex:1;padding:11px 4px;text-align:center;font-size:13px;font-weight:500;color:var(--ink2);cursor:pointer;border-bottom:2px solid transparent}
+.tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+.views{flex:1;overflow:hidden;position:relative}
+.view{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;padding-bottom:env(safe-area-inset-bottom,16px)}
+.view.on{display:block}
+
+/* REPORT */
+.filter-bar{padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;flex-direction:column;gap:10px;position:sticky;top:0;z-index:10}
+.date-row{display:flex;gap:8px;align-items:center}
+.date-row label{font-size:12px;color:var(--ink3);white-space:nowrap}
+.date-row input{flex:1;padding:8px 10px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg);color:var(--ink);font-size:13px}
+.filter-row{display:flex;gap:8px}
+.filter-btn{flex:1;padding:8px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg);color:var(--ink2);font-size:12px;font-weight:500}
+.filter-btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.preset-btn{flex:1;padding:7px 4px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg);color:var(--ink2);font-size:11px;font-weight:500;white-space:nowrap}
+.preset-btn:active{background:var(--bg3)}
+.run-btn{padding:8px 14px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;border:none;white-space:nowrap}
+.export-btn{padding:8px 14px;border-radius:var(--rs);background:var(--green-bg);color:var(--green-txt);font-size:13px;font-weight:500;border:1px solid var(--green-txt);white-space:nowrap}
+.export-btn.print{background:var(--bg2);color:var(--ink2);border-color:var(--bd2)}
+.export-btn.new-transfer{background:var(--amber-bg);color:#7a4e0a;border-color:var(--amber-bd)}
+.btn-row{display:flex;gap:8px}
+
+.report-day{padding:10px 16px 4px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
+.order-block{margin:6px 16px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.order-block.transfer{border-color:var(--amber-bd)}
+.ob-head{padding:10px 14px;background:var(--bg2);display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.transfer .ob-head{background:var(--amber-bg)}
+.ob-left{flex:1;min-width:0}
+.ob-title{font-size:13px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ob-meta{font-size:11px;color:var(--ink3);margin-top:2px}
+.ob-actions{display:flex;gap:6px;flex-shrink:0}
+.act-btn{padding:5px 10px;border-radius:var(--rs);font-size:11px;font-weight:500;border:1px solid;white-space:nowrap}
+.act-btn.edit{background:var(--bg);color:var(--ink2);border-color:var(--bd2)}
+.act-btn.del{background:var(--red-bg);color:var(--red-txt);border-color:var(--red-bd)}
+.act-btn:active{opacity:.7}
+.ob-total{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}
+.transfer .ob-title,.transfer .ob-meta{color:#1a1a1a}
+.transfer-badge{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#7a4e0a;background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:99px;padding:2px 7px}
+.admin-edit-badge{font-size:10px;font-weight:600;letter-spacing:.03em;color:var(--ink3);background:var(--bg3);border-radius:99px;padding:2px 7px}
+.ob-row{display:flex;align-items:center;padding:7px 14px;border-top:1px solid var(--bd);gap:6px;font-size:13px}
+.ob-row.out .ob-name{color:var(--red-txt);text-decoration:line-through}
+.ob-name{flex:1;color:var(--ink);font-size:13px}
+.ob-qty{font-size:12px;color:var(--ink3);white-space:nowrap;min-width:64px;text-align:right}
+.ob-price{font-size:12px;color:var(--ink3);white-space:nowrap;min-width:52px;text-align:right}
+.ob-total-cell{font-size:12px;font-weight:500;color:var(--ink);white-space:nowrap;min-width:52px;text-align:right}
+.ob-gl{font-size:10px;color:var(--ink3);min-width:46px;text-align:right}
+
+.gl-summary{margin:12px 16px 24px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.gl-summary-hd{padding:10px 14px;background:var(--ink);color:var(--bg);font-size:13px;font-weight:500}
+.gl-row{display:flex;padding:10px 14px;border-top:1px solid var(--bd);font-size:13px;align-items:center}
+.gl-code{font-size:12px;font-weight:600;color:var(--ink);min-width:58px}
+.gl-name{flex:1;color:var(--ink2);font-size:12px;padding:0 8px}
+.gl-total{font-weight:600;color:var(--ink)}
+.gl-grand{background:var(--bg2);display:flex;justify-content:space-between;padding:12px 14px;border-top:2px solid var(--bd2);font-size:14px;font-weight:600;color:var(--ink)}
+.empty-report{text-align:center;padding:40px 20px;color:var(--ink3);font-size:14px}
+
+/* ITEMS */
+.search-bar{padding:10px 16px;border-bottom:1px solid var(--bd);background:var(--bg2);position:sticky;top:0;z-index:5}
+.search-bar input{width:100%;padding:9px 12px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg);color:var(--ink);font-size:14px;outline:none}
+.items-header{padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd)}
+.items-count{font-size:13px;color:var(--ink2)}
+.add-item-btn{padding:8px 16px;border-radius:var(--rs);background:var(--ink);color:var(--bg);font-size:13px;font-weight:500;border:none}
+.item-list-row{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--bd);gap:10px;cursor:pointer}
+.item-list-row:active{background:var(--bg2)}
+.il-info{flex:1;min-width:0}
+.il-name{font-size:14px;color:var(--ink)}
+.il-meta{font-size:11px;color:var(--ink3);margin-top:2px}
+.il-gl{font-size:11px;font-weight:600;color:var(--ink2)}
+.edit-icon{font-size:18px;color:var(--ink3)}
+
+/* MODALS */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:100}
+.modal{background:var(--bg);border-radius:var(--r) var(--r) 0 0;padding:20px;width:100%;max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.modal-title{font-size:17px;font-weight:600;color:var(--ink)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.field input,.field select{width:100%;padding:10px 12px;border-radius:var(--rs);border:1.5px solid var(--bd2);background:var(--bg2);color:var(--ink);font-size:15px;outline:none}
+.field input:focus,.field select:focus{border-color:var(--ink)}
+.field-row{display:flex;gap:10px}
+.field-row .field{flex:1}
+.modal-btns{display:flex;gap:8px}
+.modal-btns button{flex:1;padding:13px;border-radius:var(--rs);font-size:14px;font-weight:500;border:1px solid var(--bd2)}
+.btn-cancel-m{background:var(--bg2);color:var(--ink2)}
+.btn-save{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn-delete{background:var(--red-bg);color:var(--red-txt);border-color:var(--red-txt)}
+.btn-save:active,.btn-delete:active,.btn-cancel-m:active{opacity:.8}
+
+/* EDIT ORDER MODAL */
+.edit-item-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--bd);gap:8px}
+.edit-item-row:last-child{border-bottom:none}
+.ein{flex:1;font-size:14px;color:var(--ink)}
+.eq-row{display:flex;align-items:center;gap:4px}
+.eqb{width:28px;height:28px;border-radius:50%;background:var(--bg3);color:var(--ink);font-size:16px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bd2);flex-shrink:0;line-height:1}
+.eqn{font-size:14px;font-weight:500;min-width:22px;text-align:center}
+.type-toggle{display:flex;border:1px solid var(--bd2);border-radius:99px;overflow:hidden;font-size:11px;font-weight:500}
+.type-toggle button{padding:3px 8px;background:transparent;border:none;color:var(--ink3)}
+.type-toggle button.on{background:var(--ink);color:var(--bg)}
+.status-sel{font-size:11px;padding:4px 6px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg2);color:var(--ink)}
+.remove-item-btn{width:24px;height:24px;border-radius:50%;background:var(--red-bg);color:var(--red-txt);border:none;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* NEW TRANSFER PICKER */
+.nt-pick-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--bd);font-size:13px}
+.nt-pick-row:last-child{border-bottom:none}
+.nt-pick-row:active{background:var(--bg2)}
+.nt-pick-add{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:16px;border:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
+.nt-cart-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px}
+.nt-cart-row:last-child{border-bottom:none}
+.nt-cart-name{flex:1}
+.nt-empty{font-size:13px;color:var(--ink3);text-align:center;padding:10px 0}
+
+/* SETTINGS */
+.settings-section{padding:20px 16px;display:flex;flex-direction:column;gap:16px}
+.settings-title{font-size:16px;font-weight:600;color:var(--ink)}
+.pin-change-card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px}
+.pin-msg{font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+
+<div id="pin-screen">
+  <div class="pin-logo">Canvas · Admin</div>
+  <div class="pin-title">Supervisor Panel</div>
+  <div class="pin-card">
+    <input id="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="••••" onkeydown="if(event.key==='Enter')checkPin()">
+    <div id="pin-err" class="pin-err hidden">Incorrect PIN.</div>
+    <button class="btn-primary" onclick="checkPin()">Unlock</button>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <div class="header">
+    <div class="brand">Canvas · Admin</div>
+    <div class="app-title">Supervisor Panel</div>
+  </div>
+  <div class="tabs">
+    <div class="tab on" id="t-report" onclick="sw('report')">Report</div>
+    <div class="tab" id="t-items" onclick="sw('items')">Items</div>
+    <div class="tab" id="t-settings" onclick="sw('settings')">Settings</div>
+  </div>
+  <div class="views">
+    <div class="view on" id="v-report"></div>
+    <div class="view" id="v-items"></div>
+    <div class="view" id="v-settings"></div>
+  </div>
+</div>
+
+<!-- ITEM MODAL -->
+<div id="item-modal" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-title" id="imodal-title">Edit Item</div>
+    <div class="field"><label>Name</label><input id="m-name" type="text"></div>
+    <div class="field"><label>Category</label><input id="m-cat" type="text"></div>
+    <div class="field-row">
+      <div class="field"><label>GL Code</label><input id="m-gl" type="text"></div>
+      <div class="field"><label>GL Category</label><input id="m-glcat" type="text"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Unit label</label><input id="m-ulabel" type="text" placeholder="gallon"></div>
+      <div class="field"><label>Unit price $</label><input id="m-uprice" type="number" step="0.01" min="0"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Box label</label><input id="m-blabel" type="text" placeholder="case"></div>
+      <div class="field"><label>Box price $</label><input id="m-bprice" type="number" step="0.01" min="0"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel-m" onclick="closeItemModal()">Cancel</button>
+      <button id="item-del-btn" class="btn-delete hidden" onclick="deleteItem()">Delete</button>
+      <button class="btn-save" onclick="saveItem()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT ORDER MODAL -->
+<div id="order-modal" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-title" id="omodal-title">Edit Order</div>
+    <div id="order-modal-items"></div>
+    <div class="field"><label>Admin note (required)</label><input id="admin-note" type="text" placeholder="Reason for edit..."></div>
+    <div class="modal-btns">
+      <button class="btn-cancel-m" onclick="closeOrderModal()">Cancel</button>
+      <button class="btn-save" onclick="saveOrderEdit()">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW ORDER MODAL -->
+<div id="new-transfer-modal" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-title">New Order — Canvas</div>
+    <div class="field"><label>Logged by (employee name)</label><input id="nt-employee" type="text" placeholder="e.g. Alex"></div>
+    <div class="field"><label>Date</label><input id="nt-date" type="date"></div>
+    <div class="field"><label>Add item</label><input id="nt-search" type="text" placeholder="Search items..." oninput="renderNtPicker()"></div>
+    <div id="nt-picker" style="max-height:160px;overflow-y:auto;border:1px solid var(--bd);border-radius:var(--rs)"></div>
+    <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-top:4px">Items in this order</div>
+    <div id="nt-cart"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel-m" onclick="closeNewTransfer()">Cancel</button>
+      <button class="btn-save" onclick="saveNewTransfer()">Create Order</button>
+    </div>
+  </div>
+</div>
+
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getDatabase, ref, set, get, onValue, update, remove, push, runTransaction }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+const FB={apiKey:"AIzaSyBlhkq7t3KlDYwZcXUclF_0AqWYYdnlou8",authDomain:"compass-bar-448c0.firebaseapp.com",databaseURL:"https://compass-bar-448c0-default-rtdb.firebaseio.com",projectId:"compass-bar-448c0",storageBucket:"compass-bar-448c0.firebasestorage.app",messagingSenderId:"281477138732",appId:"1:281477138732:web:c2c0fffd5bd060f47ec489"};
+const DEFAULT_PIN='2024';
+const fbApp=initializeApp(FB);
+const db=getDatabase(fbApp);
+const ordRef=ref(db,'units/canvas/orders');
+const itmRef=ref(db,'units/canvas/items');
+const cfgRef=ref(db,'units/canvas/config');
+const counterRef=ref(db,'units/canvas/counter');
+
+let ntCart={};
+
+let orders={}, dbItems={}, config={}, curTab='report';
+let editingItemId=null, editingOrderKey=null, editOrderItems={};
+let itemSearch='';
+
+// ── PIN ──
+window.checkPin=async function(){
+  const v=document.getElementById('pin-input').value;
+  const snap=await get(cfgRef); const pin=snap.val()?.adminPin||DEFAULT_PIN;
+  if(v===pin){document.getElementById('pin-screen').classList.add('hidden');document.getElementById('app').classList.remove('hidden');startApp();}
+  else{document.getElementById('pin-err').classList.remove('hidden');document.getElementById('pin-input').value='';}
+};
+
+function startApp(){
+  onValue(ordRef,snap=>{orders=snap.val()||{};if(curTab==='report')rReport();});
+  onValue(itmRef,snap=>{dbItems=snap.val()||{};if(curTab==='items')rItems();});
+  onValue(cfgRef,snap=>{config=snap.val()||{};});
+  rReport();
+}
+
+// ── TABS ──
+window.sw=function(t){
+  curTab=t;
+  ['report','items','settings'].forEach(n=>{document.getElementById('t-'+n).className='tab'+(n===t?' on':'');document.getElementById('v-'+n).className='view'+(n===t?' on':'');});
+  if(t==='report')rReport(); if(t==='items')rItems(); if(t==='settings')rSettings();
+};
+
+// ── UTILS ──
+function fmt(ts){return ts?new Date(ts).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}):''}
+function fmtDate(ts){return ts?new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''}
+function fmtDateShort(ts){return ts?new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}
+function dollar(n){return n>0?'$'+n.toFixed(2):'-'}
+function lineTotal(it,qty,type){return((type==='box'?it.boxPrice:it.unitPrice)||0)*qty;}
+function lineLabel(qty,type,it){return qty+' '+(type==='box'?it.boxLabel||'box':it.unitLabel||'each')}
+function today(){return new Date().toDateString()}
+
+// ── REPORT ──
+window.setPreset=function(p){
+  const fmt=d=>d.toISOString().split('T')[0];
+  const now=new Date(); now.setHours(0,0,0,0);
+  let from,to;
+  if(p==='today'){from=to=fmt(now);}
+  else if(p==='yesterday'){const y=new Date(now);y.setDate(y.getDate()-1);from=to=fmt(y);}
+  else if(p==='week'){const d=new Date(now);d.setDate(d.getDate()-d.getDay());from=fmt(d);to=fmt(now);}
+  else if(p==='month'){const d=new Date(now.getFullYear(),now.getMonth(),1);from=fmt(d);to=fmt(now);}
+  document.getElementById('r-from').value=from;
+  document.getElementById('r-to').value=to;
+  rReport();
+};
+window.runReport=()=>rReport();
+
+function getFiltered(){
+  const fromVal=document.getElementById('r-from')?.value;
+  const toVal=document.getElementById('r-to')?.value;
+  const fromTs=fromVal?new Date(fromVal+'T00:00:00').getTime():0;
+  const toTs=toVal?new Date(toVal+'T23:59:59').getTime():Date.now()+86400000;
+  return Object.entries(orders).filter(([,o])=>{
+    const ts=o.completedAt||o.createdAt;
+    if(ts<fromTs||ts>toTs)return false;
+    return true;
+  }).sort(([,a],[,b])=>(b.completedAt||b.createdAt||0)-(a.completedAt||a.createdAt||0));
+}
+
+function rReport(){
+  const el=document.getElementById('v-report');
+  const fromVal=document.getElementById('r-from')?.value||'';
+  const toVal=document.getElementById('r-to')?.value||'';
+  let h=`<div class="filter-bar">
+    <div class="filter-row">
+      <button class="preset-btn" onclick="setPreset('today')">Today</button>
+      <button class="preset-btn" onclick="setPreset('yesterday')">Yesterday</button>
+      <button class="preset-btn" onclick="setPreset('week')">This week</button>
+      <button class="preset-btn" onclick="setPreset('month')">This month</button>
+    </div>
+    <div class="date-row">
+      <label>From</label><input id="r-from" type="date" value="${fromVal}">
+      <label>To</label><input id="r-to" type="date" value="${toVal}">
+    </div>
+    <div class="btn-row">
+      <button class="run-btn" onclick="runReport()">Apply</button>
+      <button class="export-btn" onclick="exportExcel()">↓ CSV</button>
+      <button class="export-btn print" onclick="exportPrint()">🖨 PDF</button>
+      <button class="export-btn new-transfer" onclick="openNewOrder()">+ New Order</button>
+    </div>
+  </div>`;
+
+  const filtered=getFiltered();
+  if(!filtered.length){h+='<div class="empty-report">No orders match the selected filters.</div>';el.innerHTML=h;return;}
+
+  // GL totals
+  const glTotals={};
+  filtered.forEach(([,o])=>{
+    if(o.status==='cancelled')return;
+    Object.values(o.items||{}).forEach(it=>{
+      if(it.s==='out')return;
+      const lt=lineTotal(it,it.qty,it.qtyType); if(!lt)return;
+      const k=it.glCode||'—';
+      if(!glTotals[k])glTotals[k]={name:it.glCat||'',total:0};
+      glTotals[k].total+=lt;
+    });
+  });
+
+  // Group by day
+  const byDay={};
+  filtered.forEach(([key,o])=>{const d=new Date(o.completedAt||o.createdAt).toDateString();if(!byDay[d])byDay[d]=[];byDay[d].push([key,o]);});
+  const sortedDays=Object.keys(byDay).sort((a,b)=>new Date(b)-new Date(a));
+
+  sortedDays.forEach(day=>{
+    const label=day===today()?'Today':day===new Date(Date.now()-86400000).toDateString()?'Yesterday':new Date(day).toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+    h+=`<div class="report-day">${label}</div>`;
+    byDay[day].forEach(([key,o])=>{
+      const cancelled=o.status==='cancelled';
+      const items=Object.entries(o.items||{});
+      const orderTotal=items.reduce((s,[,it])=>it.s!=='out'?s+lineTotal(it,it.qty,it.qtyType):s,0);
+      h+=`<div class="order-block${cancelled?' cancelled':''}">
+        <div class="ob-head">
+          <div class="ob-left">
+            <div class="ob-title">Order #${o.num} ${o.adminEdit?`<span class="admin-edit-badge">edited</span>`:''}
+            ${cancelled?`<span style="font-size:10px;color:var(--red-txt)">CANCELLED</span>`:''}</div>
+            <div class="ob-meta">${fmt(o.createdAt)} · ${o.createdBy}${o.adminEdit?` · Note: ${o.adminEdit.note}`:''}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            ${orderTotal>0?`<span class="ob-total">${dollar(orderTotal)}</span>`:''}
+            <div class="ob-actions">
+              <button class="act-btn edit" onclick="openEditOrder('${key}')">Edit</button>
+              <button class="act-btn del" onclick="deleteOrder('${key}')">Delete</button>
+            </div>
+          </div>
+        </div>`;
+      items.forEach(([,it])=>{const lt=lineTotal(it,it.qty,it.qtyType);h+=`<div class="ob-row${it.s==='out'?' out':''}"><span class="ob-name">${it.name}</span><span class="ob-qty">${lineLabel(it.qty,it.qtyType,it)}</span><span class="ob-price">${it.s==='out'?'out':dollar(it.qtyType==='box'?it.boxPrice:it.unitPrice)}</span><span class="ob-total-cell">${it.s==='out'?'—':dollar(lt)}</span><span class="ob-gl">${it.glCode||''}</span></div>`;});
+      h+=`</div>`;
+    });
+  });
+
+  // GL Summary
+  if(Object.keys(glTotals).length){
+    const grand=Object.values(glTotals).reduce((s,v)=>s+v.total,0);
+    h+=`<div class="report-day">Summary by GL Code</div><div class="gl-summary"><div class="gl-summary-hd">GL Code Breakdown</div>`;
+    Object.entries(glTotals).sort(([a],[b])=>a.localeCompare(b)).forEach(([code,v])=>{h+=`<div class="gl-row"><span class="gl-code">${code}</span><span class="gl-name">${v.name}</span><span class="gl-total">${dollar(v.total)}</span></div>`;});
+    h+=`<div class="gl-grand"><span>Grand Total</span><span>${dollar(grand)}</span></div></div>`;
+  }
+
+  el.innerHTML=h;
+}
+
+// ── DELETE ORDER ──
+window.deleteOrder=async function(key){
+  if(!confirm('Delete this order permanently? This cannot be undone.'))return;
+  await remove(ref(db,`units/canvas/orders/${key}`));
+};
+
+// ── EDIT ORDER ──
+window.openEditOrder=function(key){
+  const o=orders[key]; if(!o)return;
+  editingOrderKey=key;
+  editOrderItems=JSON.parse(JSON.stringify(o.items||{}));
+  document.getElementById('omodal-title').textContent=`Edit Order #${o.num}`;
+  document.getElementById('admin-note').value='';
+  renderEditOrderItems();
+  document.getElementById('order-modal').classList.remove('hidden');
+};
+
+function renderEditOrderItems(){
+  let h='';
+  Object.entries(editOrderItems).forEach(([iid,it])=>{
+    const hasBox=it.boxPrice>0||it.boxLabel;
+    h+=`<div class="edit-item-row" id="erow-${iid}">
+      <span class="ein">${it.name}</span>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <div class="eq-row">
+          <button class="eqb" onclick="editQty('${iid}',-1)">−</button>
+          <span class="eqn" id="eqn-${iid}">${it.qty}</span>
+          <button class="eqb" onclick="editQty('${iid}',1)">+</button>
+        </div>
+        ${hasBox?`<div class="type-toggle"><button class="${it.qtyType==='unit'?'on':''}" onclick="editType('${iid}','unit')" id="etunit-${iid}">${it.unitLabel||'each'}</button><button class="${it.qtyType==='box'?'on':''}" onclick="editType('${iid}','box')" id="etbox-${iid}">${it.boxLabel||'box'}</button></div>`:''}
+        <select class="status-sel" id="esel-${iid}" onchange="editStatus('${iid}',this.value)">
+          <option value="pending"${it.s==='pending'?' selected':''}>Pending</option>
+          <option value="done"${it.s==='done'?' selected':''}>Done</option>
+          <option value="out"${it.s==='out'?' selected':''}>Out</option>
+        </select>
+      </div>
+      <button class="remove-item-btn" onclick="removeEditItem('${iid}')">✕</button>
+    </div>`;
+  });
+  if(!h)h='<div style="padding:12px 0;color:var(--ink3);font-size:13px;text-align:center">No items</div>';
+  document.getElementById('order-modal-items').innerHTML=h;
+}
+
+window.editQty=(iid,d)=>{if(!editOrderItems[iid])return;editOrderItems[iid].qty=Math.max(1,editOrderItems[iid].qty+d);document.getElementById('eqn-'+iid).textContent=editOrderItems[iid].qty;};
+window.editType=(iid,t)=>{if(!editOrderItems[iid])return;editOrderItems[iid].qtyType=t;document.getElementById('etunit-'+iid)?.classList.toggle('on',t==='unit');document.getElementById('etbox-'+iid)?.classList.toggle('on',t==='box');};
+window.editStatus=(iid,s)=>{if(!editOrderItems[iid])return;editOrderItems[iid].s=s;};
+window.removeEditItem=iid=>{delete editOrderItems[iid];renderEditOrderItems();};
+
+window.closeOrderModal=()=>document.getElementById('order-modal').classList.add('hidden');
+
+window.saveOrderEdit=async function(){
+  const note=document.getElementById('admin-note').value.trim();
+  if(!note){alert('Please add a note explaining the reason for this edit.');return;}
+  const upd={};
+  upd[`units/canvas/orders/${editingOrderKey}/items`]=editOrderItems;
+  upd[`units/canvas/orders/${editingOrderKey}/adminEdit`]={editedAt:Date.now(),note};
+  // Check if all resolved
+  const allDone=Object.values(editOrderItems).every(v=>v.s!=='pending');
+  if(allDone){upd[`units/canvas/orders/${editingOrderKey}/status`]='complete';upd[`units/canvas/orders/${editingOrderKey}/completedAt`]=Date.now();}
+  await update(ref(db),upd);
+  closeOrderModal();
+};
+
+// ── EXPORT EXCEL ──
+window.exportPrint=function(){
+  const filtered=getFiltered();
+  if(!filtered.length){alert('No data to export.');return;}
+
+  const fromVal=document.getElementById('r-from')?.value||'';
+  const toVal=document.getElementById('r-to')?.value||'';
+  const periodLabel=fromVal&&toVal?`${fromVal} – ${toVal}`:fromVal?`From ${fromVal}`:toVal?`To ${toVal}`:'All dates';
+
+  const glTotals={};
+  let rows='';
+
+  filtered.forEach(([,o])=>{
+    if(o.status==='cancelled')return; // skip cancelled orders entirely
+    const dateStr=new Date(o.createdAt).toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'2-digit'});
+    const items=Object.values(o.items||{}).filter(it=>it.s!=='out'); // skip out items
+    if(!items.length)return;
+    items.forEach((it,idx)=>{
+      const price=(it.qtyType==='box'?it.boxPrice:it.unitPrice)||0;
+      const lt=lineTotal(it,it.qty,it.qtyType);
+      const unitLabel=it.qtyType==='box'?it.boxLabel||'box':it.unitLabel||'each';
+      rows+=`<tr>
+        <td>${idx===0?dateStr:''}</td>
+        <td>${it.name}</td>
+        <td style="text-align:center">${it.qty}</td>
+        <td style="text-align:center">${unitLabel}</td>
+        <td>${idx===0?o.createdBy:''}</td>
+        <td style="text-align:right">${price>0?'$'+price.toFixed(2):''}</td>
+        <td style="text-align:right">${lt>0?'$'+lt.toFixed(2):''}</td>
+        <td style="text-align:center">${it.glCode||''}</td>
+        <td>${it.glCat||''}</td>
+        <td></td>
+      </tr>`;
+      if(lt>0){
+        const k=it.glCode||'—';
+        if(!glTotals[k])glTotals[k]={name:it.glCat||'',total:0};
+        glTotals[k].total+=lt;
+      }
+    });
+    rows+=`<tr class="sep"><td colspan="10"></td></tr>`;
+  });
+
+  const grand=Object.values(glTotals).reduce((s,v)=>s+v.total,0);
+  let summaryRows=Object.entries(glTotals).sort(([a],[b])=>a.localeCompare(b))
+    .map(([code,v])=>`<tr><td><strong>${code}</strong></td><td colspan="6">${v.name}</td><td style="text-align:right"><strong>$${v.total.toFixed(2)}</strong></td><td colspan="2"></td></tr>`).join('');
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>Restock Report – ${periodLabel}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,sans-serif;font-size:11px;color:#000;padding:20px}
+  h1{text-align:center;font-size:20px;font-weight:700;background:#4472c4;color:#fff;padding:12px;letter-spacing:.08em;margin-bottom:4px}
+  .period{text-align:center;font-size:11px;color:#555;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;border:1.5px solid #000}
+  th{background:#4472c4;color:#fff;font-size:10px;font-weight:700;padding:6px 5px;border:1px solid #2d5aa0;text-align:left}
+  td{padding:5px 5px;border:1px solid #ccc;vertical-align:top}
+  tr.sep td{height:6px;background:#f0f4ff;border:none}
+  tr.cancelled td{color:#999}
+  .summary-hd{margin-top:24px;background:#4472c4;color:#fff;font-size:12px;font-weight:700;padding:7px 10px;letter-spacing:.05em}
+  .summary-table{width:100%;border-collapse:collapse;border:1.5px solid #000;margin-top:0}
+  .summary-table th{background:#d9e2f3;color:#000;font-size:10px;padding:5px 6px;border:1px solid #aaa}
+  .summary-table td{padding:5px 6px;border:1px solid #ccc}
+  .grand td{font-weight:700;background:#e9f0fb;font-size:12px}
+  @media print{body{padding:0} @page{margin:15mm}}
+  .print-btn{display:block;margin:0 auto 16px;padding:10px 32px;background:#4472c4;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer}
+  @media print{.print-btn{display:none}}
+</style></head><body>
+<button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
+<h1>RESTOCK REPORT — CANVAS</h1>
+<div class="period">Period: ${periodLabel} &nbsp;|&nbsp; Generated: ${new Date().toLocaleString('en-US')}</div>
+<table>
+  <thead><tr>
+    <th style="width:9%">Date</th>
+    <th style="width:25%">Product</th>
+    <th style="width:7%;text-align:center">Amount</th>
+    <th style="width:8%;text-align:center">Unit</th>
+    <th style="width:12%">Employee</th>
+    <th style="width:9%;text-align:right">Unit Price</th>
+    <th style="width:9%;text-align:right">Total</th>
+    <th style="width:8%;text-align:center">GL Code</th>
+    <th style="width:13%">GL Category</th>
+  </tr></thead>
+  <tbody>${rows}</tbody>
+</table>
+<div class="summary-hd">GL CODE SUMMARY</div>
+<table class="summary-table">
+  <thead><tr><th>GL Code</th><th>GL Category</th><th colspan="5"></th><th style="text-align:right">Total</th><th colspan="2"></th></tr></thead>
+  <tbody>
+    ${summaryRows}
+    <tr class="grand"><td></td><td>GRAND TOTAL</td><td colspan="5"></td><td style="text-align:right">$${grand.toFixed(2)}</td><td colspan="2"></td></tr>
+  </tbody>
+</table>
+</body></html>`;
+
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+};
+
+window.exportExcel=function(){
+  const filtered=getFiltered();
+  if(!filtered.length){alert('No data to export.');return;}
+
+  const fromVal=document.getElementById('r-from')?.value||'';
+  const toVal=document.getElementById('r-to')?.value||'';
+
+  const esc=v=>{
+    if(v===null||v===undefined)return'';
+    const s=String(v);
+    return s.includes(',')||s.includes('"')||s.includes('\n')?`"${s.replace(/"/g,'""')}"`:s;
+  };
+  const row=(...cols)=>cols.map(esc).join(',')+'\n';
+
+  let csv='';
+  csv+=row('RESTOCK REPORT — CANVAS');
+  csv+=row(`Period: ${fromVal||'start'} – ${toVal||'today'}`);
+  csv+=row();
+  csv+=row('Date','Product','Amount','Unit','Employee','Unit Price','Total','GL Code','GL Category');
+
+  // GL totals accumulated while building rows
+  const glTotals={};
+
+  filtered.forEach(([,o])=>{
+    if(o.status==='cancelled')return; // skip cancelled orders entirely
+    const dateStr=new Date(o.createdAt).toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'2-digit'});
+    const items=Object.values(o.items||{}).filter(it=>it.s!=='out'); // skip out items
+    if(!items.length)return;
+    items.forEach((it,idx)=>{
+      const price=(it.qtyType==='box'?it.boxPrice:it.unitPrice)||0;
+      const lt=lineTotal(it,it.qty,it.qtyType);
+      const unitLabel=it.qtyType==='box'?it.boxLabel||'box':it.unitLabel||'each';
+      csv+=row(
+        idx===0?dateStr:'',
+        it.name,
+        it.qty,
+        unitLabel,
+        idx===0?o.createdBy:'',
+        price>0?price:'',
+        lt>0?lt:'',
+        it.glCode||'',
+        it.glCat||''
+      );
+      if(lt>0){
+        const k=it.glCode||'—';
+        if(!glTotals[k])glTotals[k]={name:it.glCat||'',total:0};
+        glTotals[k].total+=lt;
+      }
+    });
+    csv+=row(); // blank line between orders
+  });
+
+  // GL Summary
+  csv+=row();
+  csv+=row('GL CODE SUMMARY');
+  csv+=row('GL Code','GL Category','Total');
+  Object.entries(glTotals).sort(([a],[b])=>a.localeCompare(b)).forEach(([code,v])=>{
+    csv+=row(code,v.name,'$'+v.total.toFixed(2));
+  });
+  const grand=Object.values(glTotals).reduce((s,v)=>s+v.total,0);
+  csv+=row('','GRAND TOTAL','$'+grand.toFixed(2));
+
+  // Download
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`canvas-restock${fromVal?'-'+fromVal:''}${toVal?'_'+toVal:''}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+// ── NEW TRANSFER (admin-created) ──
+window.openNewOrder=function(){
+  ntCart={};
+  document.getElementById('nt-employee').value='';
+  document.getElementById('nt-search').value='';
+  const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+  document.getElementById('nt-date').value=d.toISOString().split('T')[0];
+  renderNtPicker();
+  renderNtCart();
+  document.getElementById('new-transfer-modal').classList.remove('hidden');
+};
+window.closeNewTransfer=()=>document.getElementById('new-transfer-modal').classList.add('hidden');
+
+window.renderNtPicker=function(){
+  const q=(document.getElementById('nt-search').value||'').toLowerCase();
+  const el=document.getElementById('nt-picker');
+  let items=Object.entries(dbItems);
+  if(q) items=items.filter(([,it])=>it.name.toLowerCase().includes(q));
+  items=items.sort(([,a],[,b])=>a.name.localeCompare(b.name)).slice(0,30);
+  if(!items.length){el.innerHTML='<div class="nt-empty">No items found</div>';return;}
+  el.innerHTML=items.map(([id,it])=>`<div class="nt-pick-row"><span>${it.name}</span><button class="nt-pick-add" onclick="ntAdd('${id}')">+</button></div>`).join('');
+};
+
+window.ntAdd=function(id){
+  if(!ntCart[id]) ntCart[id]={qty:1,type:'unit'};
+  else ntCart[id].qty++;
+  renderNtCart();
+};
+window.ntChq=function(id,d){
+  if(!ntCart[id])return;
+  ntCart[id].qty=Math.max(0,ntCart[id].qty+d);
+  if(!ntCart[id].qty) delete ntCart[id];
+  renderNtCart();
+};
+window.ntSetType=function(id,t){
+  if(!ntCart[id])return;
+  ntCart[id].type=t;
+  renderNtCart();
+};
+
+function renderNtCart(){
+  const el=document.getElementById('nt-cart');
+  const ids=Object.keys(ntCart);
+  if(!ids.length){el.innerHTML='<div class="nt-empty">No items added yet</div>';return;}
+  el.innerHTML=ids.map(id=>{
+    const it=dbItems[id]; if(!it)return'';
+    const c=ntCart[id];
+    const hasBox=it.boxPrice>0||it.boxLabel;
+    return `<div class="nt-cart-row">
+      <span class="nt-cart-name">${it.name}</span>
+      <div class="eq-row"><button class="eqb" onclick="ntChq('${id}',-1)">−</button><span class="eqn">${c.qty}</span><button class="eqb" onclick="ntChq('${id}',1)">+</button></div>
+      ${hasBox?`<div class="type-toggle"><button class="${c.type==='unit'?'on':''}" onclick="ntSetType('${id}','unit')">${it.unitLabel||'each'}</button><button class="${c.type==='box'?'on':''}" onclick="ntSetType('${id}','box')">${it.boxLabel||'box'}</button></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+window.saveNewTransfer=async function(){
+  const employee=document.getElementById('nt-employee').value.trim();
+  if(!employee){alert('Please enter the employee name.');return;}
+  const ids=Object.keys(ntCart);
+  if(!ids.length){alert('Add at least one item.');return;}
+  const dateVal=document.getElementById('nt-date').value;
+  const ts=dateVal?new Date(dateVal+'T12:00:00').getTime():Date.now();
+  const dateStr=dateVal?new Date(dateVal+'T12:00:00').toDateString():today();
+
+  let num=1;
+  try{
+    await runTransaction(counterRef,cur=>{if(!cur||cur.date!==dateStr)return{date:dateStr,num:1};return{date:cur.date,num:cur.num+1};});
+    const s=await get(counterRef); num=s.val()?.num||1;
+  }catch{}
+
+  const items={};
+  ids.forEach(id=>{
+    const it=dbItems[id]; const c=ntCart[id];
+    items[id]={name:it.name,qty:c.qty,qtyType:c.type,unitLabel:it.unitLabel,unitPrice:it.unitPrice,boxLabel:it.boxLabel,boxPrice:it.boxPrice,glCode:it.gl,glCat:it.glCat,s:'done'};
+  });
+
+  await set(push(ordRef),{
+    num, createdAt:ts, createdBy:employee,
+    date:dateStr, status:'complete', completedAt:ts, items,
+    adminEdit:{editedAt:Date.now(),note:'Created by supervisor via Admin panel'}
+  });
+
+  closeNewTransfer();
+};
+
+// ── ITEMS ──
+window.itemSearch='';
+window.onItemSearch=function(v){itemSearch=v;rItems();};
+
+function rItems(){
+  const el=document.getElementById('v-items');
+  const q=itemSearch.toLowerCase();
+  let items=Object.entries(dbItems).filter(([,it])=>{
+    if(!q)return true;
+    return it.name.toLowerCase().includes(q)||(it.gl||'').includes(q)||(it.glCat||'').toLowerCase().includes(q);
+  }).sort(([,a],[,b])=>a.name.localeCompare(b.name));
+
+  let h=`<div class="search-bar"><input type="text" placeholder="Search by name or GL code..." value="${itemSearch}" oninput="onItemSearch(this.value)"></div>
+  <div class="items-header"><span class="items-count">${items.length} item${items.length!==1?'s':''}</span><button class="add-item-btn" onclick="openAddItem()">+ Add item</button></div>`;
+  items.forEach(([id,it])=>{
+    const priceStr=[it.unitPrice>0?`${dollar(it.unitPrice)}/${it.unitLabel}`:'',it.boxPrice>0?`${dollar(it.boxPrice)}/${it.boxLabel}`:''].filter(Boolean).join(' · ')||'no price';
+    h+=`<div class="item-list-row" onclick="openEditItem('${id}')"><div class="il-info"><div class="il-name">${it.name}</div><div class="il-meta">${it.cat||'—'} · ${priceStr}</div></div><div class="il-gl">${it.gl||''}</div><span class="edit-icon">›</span></div>`;
+  });
+  el.innerHTML=h;
+}
+
+window.openAddItem=()=>{editingItemId=null;document.getElementById('imodal-title').textContent='Add Item';document.getElementById('item-del-btn').classList.add('hidden');['m-name','m-cat','m-gl','m-glcat','m-ulabel','m-blabel'].forEach(id=>document.getElementById(id).value='');['m-uprice','m-bprice'].forEach(id=>document.getElementById(id).value='0');document.getElementById('item-modal').classList.remove('hidden');};
+window.openEditItem=id=>{editingItemId=id;const it=dbItems[id];if(!it)return;document.getElementById('imodal-title').textContent='Edit Item';document.getElementById('item-del-btn').classList.remove('hidden');document.getElementById('m-name').value=it.name||'';document.getElementById('m-cat').value=it.cat||'';document.getElementById('m-gl').value=it.gl||'';document.getElementById('m-glcat').value=it.glCat||'';document.getElementById('m-ulabel').value=it.unitLabel||'';document.getElementById('m-uprice').value=it.unitPrice||0;document.getElementById('m-blabel').value=it.boxLabel||'';document.getElementById('m-bprice').value=it.boxPrice||0;document.getElementById('item-modal').classList.remove('hidden');};
+window.closeItemModal=()=>document.getElementById('item-modal').classList.add('hidden');
+window.saveItem=async function(){const name=document.getElementById('m-name').value.trim();if(!name){alert('Name is required.');return;}const item={name,cat:document.getElementById('m-cat').value.trim(),gl:document.getElementById('m-gl').value.trim(),glCat:document.getElementById('m-glcat').value.trim(),unitLabel:document.getElementById('m-ulabel').value.trim()||'each',unitPrice:parseFloat(document.getElementById('m-uprice').value)||0,boxLabel:document.getElementById('m-blabel').value.trim()||'case',boxPrice:parseFloat(document.getElementById('m-bprice').value)||0};const id=editingItemId||(name.toLowerCase().replace(/[^a-z0-9]/g,'_')+'_'+Date.now());await set(ref(db,`units/canvas/items/${id}`),{...item,id});closeItemModal();};
+window.deleteItem=async function(){if(!editingItemId)return;if(!confirm('Delete this item?'))return;await remove(ref(db,`units/canvas/items/${editingItemId}`));closeItemModal();};
+
+// ── SETTINGS ──
+function rSettings(){
+  document.getElementById('v-settings').innerHTML=`<div class="settings-section"><div class="settings-title">Change Admin PIN</div><div class="pin-change-card"><div class="field"><label>New PIN</label><input id="new-pin" type="password" inputmode="numeric" maxlength="6" placeholder="Enter new PIN"></div><div class="field"><label>Confirm PIN</label><input id="confirm-pin" type="password" inputmode="numeric" maxlength="6" placeholder="Repeat new PIN"></div><button class="btn-primary" onclick="changePin()">Update PIN</button><div id="pin-msg" class="pin-msg"></div></div></div>`;
+}
+window.changePin=async function(){const n=document.getElementById('new-pin').value,c=document.getElementById('confirm-pin').value,msg=document.getElementById('pin-msg');if(n.length<4){msg.style.color='var(--red-txt)';msg.textContent='PIN must be at least 4 digits.';return;}if(n!==c){msg.style.color='var(--red-txt)';msg.textContent='PINs do not match.';return;}await set(ref(db,'units/canvas/config/adminPin'),n);msg.style.color='var(--green-txt)';msg.textContent='PIN updated.';document.getElementById('new-pin').value='';document.getElementById('confirm-pin').value='';};
+</script>
+</body>
+</html>
