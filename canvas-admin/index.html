@@ -131,6 +131,9 @@ input,select{font-family:inherit}
 .remove-item-btn{width:24px;height:24px;border-radius:50%;background:var(--red-bg);color:var(--red-txt);border:none;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 
 /* NEW TRANSFER PICKER */
+.eo-add-wrap{position:relative}
+.eo-picker-dropdown{position:absolute;top:100%;left:0;right:0;z-index:30;max-height:200px;overflow-y:auto;background:var(--bg);border:1px solid var(--bd2);border-radius:var(--rs);box-shadow:0 4px 16px rgba(0,0,0,.25);margin-top:4px}
+.eo-picker-dropdown:empty{display:none;border:none;box-shadow:none}
 .nt-pick-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--bd);font-size:13px}
 .nt-pick-row:last-child{border-bottom:none}
 .nt-pick-row:active{background:var(--bg2)}
@@ -207,8 +210,9 @@ input,select{font-family:inherit}
   <div class="modal">
     <div class="modal-title" id="omodal-title">Edit Order</div>
     <div id="order-modal-items"></div>
-    <div class="field"><label>Add item</label><input id="eo-search" type="text" placeholder="Search items..." oninput="renderEoPicker()"></div>
-    <div id="eo-picker" style="border:1px solid var(--bd);border-radius:var(--rs)"></div>
+    <div class="field eo-add-wrap"><label>Add item</label><input id="eo-search" type="text" placeholder="Search items..." oninput="renderEoPicker()" onfocus="renderEoPicker()">
+      <div id="eo-picker" class="eo-picker-dropdown"></div>
+    </div>
     <div class="field"><label>Admin note (required)</label><input id="admin-note" type="text" placeholder="Reason for edit..."></div>
     <div class="modal-btns">
       <button class="btn-cancel-m" onclick="closeOrderModal()">Cancel</button>
@@ -415,10 +419,11 @@ window.openEditOrder=function(key){
 };
 
 window.renderEoPicker=function(){
-  const q=(document.getElementById('eo-search').value||'').toLowerCase();
+  const q=(document.getElementById('eo-search').value||'').trim().toLowerCase();
   const el=document.getElementById('eo-picker');
-  let items=Object.entries(dbItems).filter(([id,it])=>!editOrderItems[id]&&(!q||it.name.toLowerCase().includes(q)));
-  items=items.sort(([,a],[,b])=>a.name.localeCompare(b.name)).slice(0,30);
+  if(!q){el.innerHTML='';return;}
+  let items=Object.entries(dbItems).filter(([id,it])=>!editOrderItems[id]&&it.name.toLowerCase().includes(q));
+  items=items.sort(([,a],[,b])=>a.name.localeCompare(b.name)).slice(0,20);
   if(!items.length){el.innerHTML='<div class="nt-empty">No items found</div>';return;}
   el.innerHTML=items.map(([id,it])=>`<div class="nt-pick-row"><span>${it.name}</span><button class="nt-pick-add" onclick="eoAddItem('${id}')">+</button></div>`).join('');
 };
