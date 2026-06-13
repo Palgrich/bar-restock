@@ -84,6 +84,23 @@ input,select{font-family:inherit}
 .gl-name{flex:1;color:var(--ink2);font-size:12px;padding:0 8px}
 .gl-total{font-weight:600;color:var(--ink)}
 .gl-grand{background:var(--bg2);display:flex;justify-content:space-between;padding:12px 14px;border-top:2px solid var(--bd2);font-size:14px;font-weight:600;color:var(--ink)}
+
+/* DASHBOARD */
+.dash-cards{display:flex;gap:8px;padding:12px 16px 4px;flex-wrap:wrap}
+.dash-card{flex:1;min-width:90px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.dash-card-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.dash-card-value{font-size:20px;font-weight:700;color:var(--ink)}
+.dash-section{padding:14px 16px 4px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
+.dash-bar-row{padding:8px 16px}
+.dash-bar-top{display:flex;justify-content:space-between;font-size:13px;color:var(--ink);margin-bottom:4px;gap:8px}
+.dash-bar-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash-bar-val{color:var(--ink2);white-space:nowrap;font-size:12px}
+.dash-bar-track{height:8px;border-radius:4px;background:var(--bg3);overflow:hidden}
+.dash-bar-fill{height:100%;background:var(--ink);border-radius:4px}
+.dash-emp-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--bd);font-size:13px}
+.dash-emp-name{font-weight:500;color:var(--ink)}
+.dash-emp-meta{font-size:12px;color:var(--ink3);margin-top:2px}
+.dash-emp-total{font-weight:600;color:var(--ink);white-space:nowrap}
 .empty-report{text-align:center;padding:40px 20px;color:var(--ink3);font-size:14px}
 
 /* ITEMS */
@@ -169,11 +186,13 @@ input,select{font-family:inherit}
   </div>
   <div class="tabs">
     <div class="tab on" id="t-report" onclick="sw('report')">Report</div>
+    <div class="tab" id="t-dashboard" onclick="sw('dashboard')">Dashboard</div>
     <div class="tab" id="t-items" onclick="sw('items')">Items</div>
     <div class="tab" id="t-settings" onclick="sw('settings')">Settings</div>
   </div>
   <div class="views">
     <div class="view on" id="v-report"></div>
+    <div class="view" id="v-dashboard"></div>
     <div class="view" id="v-items"></div>
     <div class="view" id="v-settings"></div>
   </div>
@@ -268,8 +287,8 @@ window.checkPin=async function(){
 };
 
 function startApp(){
-  onValue(ordRef,snap=>{orders=snap.val()||{};if(curTab==='report')rReport();});
-  onValue(itmRef,snap=>{dbItems=snap.val()||{};if(curTab==='items')rItems();});
+  onValue(ordRef,snap=>{orders=snap.val()||{};if(curTab==='report')rReport();if(curTab==='dashboard')rDashboard();});
+  onValue(itmRef,snap=>{dbItems=snap.val()||{};if(curTab==='items')rItems();if(curTab==='dashboard')rDashboard();});
   onValue(cfgRef,snap=>{config=snap.val()||{};});
   rReport();
 }
@@ -277,8 +296,8 @@ function startApp(){
 // ── TABS ──
 window.sw=function(t){
   curTab=t;
-  ['report','items','settings'].forEach(n=>{document.getElementById('t-'+n).className='tab'+(n===t?' on':'');document.getElementById('v-'+n).className='view'+(n===t?' on':'');});
-  if(t==='report')rReport(); if(t==='items')rItems(); if(t==='settings')rSettings();
+  ['report','dashboard','items','settings'].forEach(n=>{document.getElementById('t-'+n).className='tab'+(n===t?' on':'');document.getElementById('v-'+n).className='view'+(n===t?' on':'');});
+  if(t==='report')rReport(); if(t==='dashboard')rDashboard(); if(t==='items')rItems(); if(t==='settings')rSettings();
 };
 
 // ── UTILS ──
@@ -395,6 +414,105 @@ function rReport(){
     Object.entries(glTotals).sort(([a],[b])=>a.localeCompare(b)).forEach(([code,v])=>{h+=`<div class="gl-row"><span class="gl-code">${code}</span><span class="gl-name">${v.name}</span><span class="gl-total">${dollar(v.total)}</span></div>`;});
     h+=`<div class="gl-grand"><span>Grand Total</span><span>${dollar(grand)}</span></div></div>`;
   }
+
+  el.innerHTML=h;
+}
+
+// ── DASHBOARD ──
+function presetDates(p){
+  const fmt=d=>d.toISOString().split('T')[0];
+  const now=new Date(); now.setHours(0,0,0,0);
+  let from,to;
+  if(p==='today'){from=to=fmt(now);}
+  else if(p==='yesterday'){const y=new Date(now);y.setDate(y.getDate()-1);from=to=fmt(y);}
+  else if(p==='week'){const d=new Date(now);d.setDate(d.getDate()-d.getDay());from=fmt(d);to=fmt(now);}
+  else if(p==='month'){const d=new Date(now.getFullYear(),now.getMonth(),1);from=fmt(d);to=fmt(now);}
+  return {from,to};
+}
+
+window.setDashPreset=function(p){
+  const {from,to}=presetDates(p);
+  document.getElementById('d-from').value=from;
+  document.getElementById('d-to').value=to;
+  rDashboard();
+};
+window.runDashboard=()=>rDashboard();
+
+function rDashboard(){
+  const el=document.getElementById('v-dashboard');
+  const fromVal=document.getElementById('d-from')?.value||'';
+  const toVal=document.getElementById('d-to')?.value||'';
+  const fromTs=fromVal?new Date(fromVal+'T00:00:00').getTime():0;
+  const toTs=toVal?new Date(toVal+'T23:59:59').getTime():Date.now()+86400000;
+
+  let h=`<div class="filter-bar">
+    <div class="filter-row">
+      <button class="preset-btn" onclick="setDashPreset('today')">Today</button>
+      <button class="preset-btn" onclick="setDashPreset('yesterday')">Yesterday</button>
+      <button class="preset-btn" onclick="setDashPreset('week')">This week</button>
+      <button class="preset-btn" onclick="setDashPreset('month')">This month</button>
+    </div>
+    <div class="date-row">
+      <label>From</label><input id="d-from" type="date" value="${fromVal}">
+      <label>To</label><input id="d-to" type="date" value="${toVal}">
+    </div>
+    <div class="btn-row">
+      <button class="run-btn" onclick="runDashboard()">Apply</button>
+    </div>
+  </div>`;
+
+  const filtered=Object.entries(orders).filter(([,o])=>{
+    if(o.status==='cancelled')return false;
+    const ts=o.completedAt||o.createdAt;
+    return ts>=fromTs&&ts<=toTs;
+  });
+
+  let totalOrders=0, totalValue=0;
+  const itemTotals={}, empTotals={};
+
+  filtered.forEach(([,o])=>{
+    totalOrders++;
+    const emp=o.createdBy||'Unknown';
+    if(!empTotals[emp])empTotals[emp]={orders:0,total:0};
+    empTotals[emp].orders++;
+
+    Object.values(o.items||{}).forEach(it=>{
+      if(it.s==='out')return;
+      const lt=lineTotal(it,it.qty,it.qtyType);
+      totalValue+=lt;
+      empTotals[emp].total+=lt;
+      const unitLbl=it.qtyType==='box'?(it.boxLabel||'box'):(it.unitLabel||'each');
+      const key=it.name+'|'+unitLbl;
+      if(!itemTotals[key])itemTotals[key]={name:it.name,unit:unitLbl,qty:0,total:0};
+      itemTotals[key].qty+=it.qty;
+      itemTotals[key].total+=lt;
+    });
+  });
+
+  // Summary cards
+  h+=`<div class="dash-cards">
+    <div class="dash-card"><div class="dash-card-label">Orders</div><div class="dash-card-value">${totalOrders}</div></div>
+    <div class="dash-card"><div class="dash-card-label">Total Value</div><div class="dash-card-value">${dollar(totalValue)}</div></div>
+  </div>`;
+
+  // Top items
+  const items=Object.values(itemTotals).sort((a,b)=>b.qty-a.qty).slice(0,15);
+  const maxQty=Math.max(1,...items.map(i=>i.qty));
+  h+=`<div class="dash-section">Top Items (by quantity)</div>`;
+  if(!items.length){h+=`<div class="empty-report">No data for this period.</div>`;}
+  items.forEach(it=>{
+    const pct=Math.max(4,Math.round(it.qty/maxQty*100));
+    h+=`<div class="dash-bar-row"><div class="dash-bar-top"><span class="dash-bar-name">${it.name}</span><span class="dash-bar-val">${it.qty} ${it.unit}${it.total>0?' · '+dollar(it.total):''}</span></div><div class="dash-bar-track"><div class="dash-bar-fill" style="width:${pct}%"></div></div></div>`;
+  });
+
+  // By employee
+  h+=`<div class="dash-section">By Employee</div>`;
+  const emps=Object.entries(empTotals).sort(([,a],[,b])=>b.orders-a.orders);
+  if(!emps.length){h+=`<div class="empty-report">No data for this period.</div>`;}
+  emps.forEach(([name,d])=>{
+    const meta=`${d.orders} order${d.orders>1?'s':''}`;
+    h+=`<div class="dash-emp-row"><div><div class="dash-emp-name">${name}</div><div class="dash-emp-meta">${meta}</div></div><div class="dash-emp-total">${dollar(d.total)}</div></div>`;
+  });
 
   el.innerHTML=h;
 }
