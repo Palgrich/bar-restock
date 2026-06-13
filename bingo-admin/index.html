@@ -209,7 +209,7 @@ input,select{font-family:inherit}
     <div class="field"><label>Station</label><select id="eo-station"><option value="coffee">Coffee Bar (no transfer)</option><option value="tea">Tea Bar (transfer)</option></select></div>
     <div id="order-modal-items"></div>
     <div class="field"><label>Add item</label><input id="eo-search" type="text" placeholder="Search items..." oninput="renderEoPicker()"></div>
-    <div id="eo-picker" style="max-height:140px;overflow-y:auto;border:1px solid var(--bd);border-radius:var(--rs)"></div>
+    <div id="eo-picker" style="border:1px solid var(--bd);border-radius:var(--rs)"></div>
     <div class="field"><label>Admin note (required)</label><input id="admin-note" type="text" placeholder="Reason for edit..."></div>
     <div class="modal-btns">
       <button class="btn-cancel-m" onclick="closeOrderModal()">Cancel</button>
@@ -225,7 +225,7 @@ input,select{font-family:inherit}
     <div class="field"><label>Logged by (employee name)</label><input id="nt-employee" type="text" placeholder="e.g. Alex"></div>
     <div class="field"><label>Date</label><input id="nt-date" type="date"></div>
     <div class="field"><label>Add item</label><input id="nt-search" type="text" placeholder="Search items..." oninput="renderNtPicker()"></div>
-    <div id="nt-picker" style="max-height:160px;overflow-y:auto;border:1px solid var(--bd);border-radius:var(--rs)"></div>
+    <div id="nt-picker" style="border:1px solid var(--bd);border-radius:var(--rs)"></div>
     <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-top:4px">Items in this transfer</div>
     <div id="nt-cart"></div>
     <div class="modal-btns">
