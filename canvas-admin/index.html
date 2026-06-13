@@ -207,6 +207,8 @@ input,select{font-family:inherit}
   <div class="modal">
     <div class="modal-title" id="omodal-title">Edit Order</div>
     <div id="order-modal-items"></div>
+    <div class="field"><label>Add item</label><input id="eo-search" type="text" placeholder="Search items..." oninput="renderEoPicker()"></div>
+    <div id="eo-picker" style="max-height:140px;overflow-y:auto;border:1px solid var(--bd);border-radius:var(--rs)"></div>
     <div class="field"><label>Admin note (required)</label><input id="admin-note" type="text" placeholder="Reason for edit..."></div>
     <div class="modal-btns">
       <button class="btn-cancel-m" onclick="closeOrderModal()">Cancel</button>
@@ -406,8 +408,27 @@ window.openEditOrder=function(key){
   editOrderItems=JSON.parse(JSON.stringify(o.items||{}));
   document.getElementById('omodal-title').textContent=`Edit Order #${o.num}`;
   document.getElementById('admin-note').value='';
+  document.getElementById('eo-search').value='';
   renderEditOrderItems();
+  renderEoPicker();
   document.getElementById('order-modal').classList.remove('hidden');
+};
+
+window.renderEoPicker=function(){
+  const q=(document.getElementById('eo-search').value||'').toLowerCase();
+  const el=document.getElementById('eo-picker');
+  let items=Object.entries(dbItems).filter(([id,it])=>!editOrderItems[id]&&(!q||it.name.toLowerCase().includes(q)));
+  items=items.sort(([,a],[,b])=>a.name.localeCompare(b.name)).slice(0,30);
+  if(!items.length){el.innerHTML='<div class="nt-empty">No items found</div>';return;}
+  el.innerHTML=items.map(([id,it])=>`<div class="nt-pick-row"><span>${it.name}</span><button class="nt-pick-add" onclick="eoAddItem('${id}')">+</button></div>`).join('');
+};
+
+window.eoAddItem=function(id){
+  const it=dbItems[id]; if(!it)return;
+  editOrderItems[id]={name:it.name,qty:1,qtyType:'unit',unitLabel:it.unitLabel,unitPrice:it.unitPrice,boxLabel:it.boxLabel,boxPrice:it.boxPrice,glCode:it.gl,glCat:it.glCat,s:'pending'};
+  document.getElementById('eo-search').value='';
+  renderEditOrderItems();
+  renderEoPicker();
 };
 
 function renderEditOrderItems(){
@@ -439,19 +460,21 @@ function renderEditOrderItems(){
 window.editQty=(iid,d)=>{if(!editOrderItems[iid])return;editOrderItems[iid].qty=Math.max(1,editOrderItems[iid].qty+d);document.getElementById('eqn-'+iid).textContent=editOrderItems[iid].qty;};
 window.editType=(iid,t)=>{if(!editOrderItems[iid])return;editOrderItems[iid].qtyType=t;document.getElementById('etunit-'+iid)?.classList.toggle('on',t==='unit');document.getElementById('etbox-'+iid)?.classList.toggle('on',t==='box');};
 window.editStatus=(iid,s)=>{if(!editOrderItems[iid])return;editOrderItems[iid].s=s;};
-window.removeEditItem=iid=>{delete editOrderItems[iid];renderEditOrderItems();};
+window.removeEditItem=iid=>{delete editOrderItems[iid];renderEditOrderItems();renderEoPicker();};
 
 window.closeOrderModal=()=>document.getElementById('order-modal').classList.add('hidden');
 
 window.saveOrderEdit=async function(){
   const note=document.getElementById('admin-note').value.trim();
   if(!note){alert('Please add a note explaining the reason for this edit.');return;}
+  if(!Object.keys(editOrderItems).length){alert('Order must have at least one item.');return;}
   const upd={};
   upd[`units/canvas/orders/${editingOrderKey}/items`]=editOrderItems;
   upd[`units/canvas/orders/${editingOrderKey}/adminEdit`]={editedAt:Date.now(),note};
   // Check if all resolved
   const allDone=Object.values(editOrderItems).every(v=>v.s!=='pending');
   if(allDone){upd[`units/canvas/orders/${editingOrderKey}/status`]='complete';upd[`units/canvas/orders/${editingOrderKey}/completedAt`]=Date.now();}
+  else {upd[`units/canvas/orders/${editingOrderKey}/status`]='active';upd[`units/canvas/orders/${editingOrderKey}/completedAt`]=null;}
   await update(ref(db),upd);
   closeOrderModal();
 };
@@ -717,23 +740,31 @@ window.saveNewTransfer=async function(){
 
 // ── ITEMS ──
 window.itemSearch='';
-window.onItemSearch=function(v){itemSearch=v;rItems();};
+window.onItemSearch=function(v){itemSearch=v;renderItemsList();};
 
 function rItems(){
-  const el=document.getElementById('v-items');
+  if(!document.getElementById('items-list')){
+    document.getElementById('v-items').innerHTML=`<div class="search-bar"><input id="item-search-input" type="text" placeholder="Search by name or GL code..." value="${itemSearch}" oninput="onItemSearch(this.value)"></div>
+    <div class="items-header"><span class="items-count" id="items-count"></span><button class="add-item-btn" onclick="openAddItem()">+ Add item</button></div>
+    <div id="items-list"></div>`;
+  }
+  renderItemsList();
+}
+
+function renderItemsList(){
   const q=itemSearch.toLowerCase();
   let items=Object.entries(dbItems).filter(([,it])=>{
     if(!q)return true;
     return it.name.toLowerCase().includes(q)||(it.gl||'').includes(q)||(it.glCat||'').toLowerCase().includes(q);
   }).sort(([,a],[,b])=>a.name.localeCompare(b.name));
 
-  let h=`<div class="search-bar"><input type="text" placeholder="Search by name or GL code..." value="${itemSearch}" oninput="onItemSearch(this.value)"></div>
-  <div class="items-header"><span class="items-count">${items.length} item${items.length!==1?'s':''}</span><button class="add-item-btn" onclick="openAddItem()">+ Add item</button></div>`;
+  document.getElementById('items-count').textContent=`${items.length} item${items.length!==1?'s':''}`;
+  let h='';
   items.forEach(([id,it])=>{
     const priceStr=[it.unitPrice>0?`${dollar(it.unitPrice)}/${it.unitLabel}`:'',it.boxPrice>0?`${dollar(it.boxPrice)}/${it.boxLabel}`:''].filter(Boolean).join(' · ')||'no price';
     h+=`<div class="item-list-row" onclick="openEditItem('${id}')"><div class="il-info"><div class="il-name">${it.name}</div><div class="il-meta">${it.cat||'—'} · ${priceStr}</div></div><div class="il-gl">${it.gl||''}</div><span class="edit-icon">›</span></div>`;
   });
-  el.innerHTML=h;
+  document.getElementById('items-list').innerHTML=h;
 }
 
 window.openAddItem=()=>{editingItemId=null;document.getElementById('imodal-title').textContent='Add Item';document.getElementById('item-del-btn').classList.add('hidden');['m-name','m-cat','m-gl','m-glcat','m-ulabel','m-blabel'].forEach(id=>document.getElementById(id).value='');['m-uprice','m-bprice'].forEach(id=>document.getElementById(id).value='0');document.getElementById('item-modal').classList.remove('hidden');};
